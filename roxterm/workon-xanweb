@@ -1,0 +1,32 @@
+#!/bin/bash
+
+DIR=$(readlink -f "$(dirname $0)")
+. $DIR/lib/check-roxterm-running
+
+XANWEB_DIR="$HOME/Code/public/xantoria-web"
+XANGAMES_DIR="$HOME/Code/public/xangames"
+
+# First create tmux sessions and split the panes up, if they don't exist
+# Activate the xantoria-web virtualenv by sending key sequences to the panes
+tmux new-session -d -s xanweb -c "$XANWEB_DIR" &&
+tmux split-window -d -h -t xanweb -c "$XANWEB_DIR" &&
+tmux send-keys -t xanweb.0 workon SPACE xantoria-web ENTER clear ENTER &&
+tmux send-keys -t xanweb.1 workon SPACE xantoria-web ENTER clear ENTER
+
+tmux new-session -d -s xangames -c "$XANGAMES_DIR" &&
+tmux split-window -d -h -t xangames -c "$XANGAMES_DIR"
+
+check_roxterm_running
+
+# Now start roxterm tabs and load the appropriate sessions
+roxterm \
+  --geometry '1200x600' \
+  -T 'xanweb' \
+  -n 'xanweb' \
+  --execute 'tmux -2 attach-session -t xanweb' || exit 1
+
+roxterm \
+  --geometry '1200x600' --tab \
+  -T 'xanweb' \
+  -n 'xangames' \
+  --execute 'tmux -2 attach-session -t xangames'

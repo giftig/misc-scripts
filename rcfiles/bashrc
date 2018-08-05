@@ -1,0 +1,82 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+  . /etc/bashrc
+fi
+
+# Import other useful files
+{
+  . ~/.passwords
+  . ~/.prettify
+  . ~/.bashrc_venv
+  . ~/.work
+} > /dev/null
+
+export WORKON_HOME=~/.virtualenvs
+export PIP_VIRTUALENV_BASE=$WORKON_HOME
+export PIP_RESPECT_VIRTUALENV=true
+
+# Elephant mode
+export HISTSIZE=100000
+export HISTFILESIZE=
+PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
+# Docker stuff
+export DOCKER_URL='unix:///var/run/docker.sock'
+
+export PS1="\W \[$(tput setaf 1)\]\$(__git_ps1 '(%s) ')\[$(tput setaf 3)\]\[$(tput bold)\]\\$ \[$(tput sgr0)\]"
+
+export PATH=$PATH:/usr/local/go/bin:/usr/local/heroku/bin:$HOME/.pokemon-terminal
+
+# Always use gvim
+alias vim=gvim
+
+# Docked redis-cli for ease
+alias redis-cli='docker run --net host --rm -it --entrypoint redis-cli redis'
+
+# Useful aliases / definitions
+alias purge_swap="find . -name '*.swp' -delete"
+
+alias tmux='tmux -2'
+
+# TMUX SHORTCUTS
+
+# Wrap a command in a tmux session if not already in one
+_in_tmux() {
+  if [[ "$TMUX" != '' ]]; then
+    $(tmux $*)
+    return
+  fi
+
+  SESSION_NAME=auto-tmux-$RANDOM
+  tmux new -d -s $SESSION_NAME -c $(pwd)
+  $(tmux $* -t $SESSION_NAME )
+  tmux attach -t $SESSION_NAME
+}
+
+dps() {
+  $HOME/scripts/dps "$@"
+}
+
+sbt() {
+  /opt/docker-sbt/wrapper.sh "$@"
+}
+
+cdl() {
+  $HOME/scripts/format/cdl "$@"
+}
+
+alias vsplit='_in_tmux split -h'
+alias hsplit='_in_tmux split -v'
+
+# Useful aliases copied from work bashrc
+alias qf="$HOME/scripts/quickfind"
+alias centos='docker run --rm -it -w /mnt -v $(pwd):/mnt centos:latest /bin/bash'
+alias node='docker run --rm -it node:latest'
+alias 8='ack --ignore-dir=test --scala'
+alias logack='ack --noenv --type-add=log:ext:log --log'
+
+alias amm='amm --banner "Ammonite started."'
+
+alias mp='mplayer -xy 1200'

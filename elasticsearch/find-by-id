@@ -1,0 +1,25 @@
+#!/bin/bash
+
+DOC_ID="$1"
+INDEX="$2"
+
+if [[ "$DOC_ID" == '' || "$INDEX" == '' ]]; then
+  echo 'Usage: find-by-id DOC_ID INDEX_NAME'
+  exit 1
+fi
+
+CDL=cdl
+if ! which cdl &> /dev/null; then
+  CDL=$SCRIPTS_DIR/docker-cardinal/wrapper.sh
+fi
+
+ELASTIC_HTTP_URL=${ELASTIC_HTTP_URL:-'localhost:9200'}
+QUERY='{"query": {"terms": {"_id": ["'"$DOC_ID"'"]}}}'
+
+curl -s "$ELASTIC_HTTP_URL/$INDEX/_search" \
+  -X POST \
+  -H 'Content-type: application/json' \
+  -d "$QUERY" |
+  python -mjson.tool |
+  $CDL
+echo ''

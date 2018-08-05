@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# PURPOSE: Source this into files to provide a standard disclaimer / warning
+#          indicating that roxterm must be running to use scripts which summon
+#          roxterm/tmux combos
+
+# Roxterm has an annoying habit of starting in this thread if it's not already
+# loaded. I'll almost always have a roxterm window open though, even if I
+# haven't run this script from one. Indicate that I'll have to open one if
+# there isn't one open
+check_roxterm_running() {
+  if [[ "$(ps x -o 'command' | grep '^roxterm')" == '' ]]; then
+    notify-send \
+      -u normal \
+      -i /home/giftiger_wunsch/Images/icons/warning.png \
+      'Open roxterm' \
+      'This script requires roxterm to be open to function properly'
+    exit 1
+  fi
+}

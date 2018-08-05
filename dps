@@ -1,0 +1,88 @@
+#!/usr/bin/env python2.7
+
+from StringIO import StringIO
+import csv
+import subprocess
+import sys
+
+FORMAT_ARGS = [
+    '--format',
+    '{{.Names}};{{.Status}};{{.Image}};{{.Ports}}'
+]
+
+RESET = '\033[0m'
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+CYAN = '\033[36m'
+FUCHSIA = '\033[95m'
+
+
+def _colourise(s, col):
+    return '%s%s%s' % (col, s, RESET)
+
+
+class DPSRow(object):
+    def __init__(self, names, status, image, ports):
+        self.names = names
+        self.status = status
+        self.ports = ports
+
+        image_comps = image.split(':')
+        self.image_name = image_comps[0]
+        self.image_tag = image_comps[1] if len(image_comps) > 1 else 'latest'
+
+    @staticmethod
+    def _colourise_status(status):
+        if 'Exited' in status:
+            status = 'Exited'
+
+        if 'Up' not in status:
+            return _colourise(status, RED)
+
+        col = YELLOW if 'seconds' in status or 'minutes' in status else GREEN
+
+        # Simplify / shorten the status a bit for easier display
+        status = status.replace(' seconds', 'm')
+        status = status.replace(' minutes', 'm')
+        status = status.replace(' hours', 'h')
+        status = status.replace(' weeks', 'w')
+        status = status.replace(' months', 'mo')
+        status = status.replace(' years', 'y')
+        status = status.replace('About a minute', '1m')
+        status = status.replace('About an hour', '1h')
+        status = status.replace('About a day', '1d')
+        status = status.replace('About a week', '1w')
+        status = status.replace('About a month', '1mo')
+        status = status.replace('About a year', '1y')
+
+        return _colourise(status, col)
+
+    def __str__(self):
+        return '%-40s  %-16s  %-70s  %s' % (
+            _colourise(self.names, CYAN),
+            self._colourise_status(self.status),
+            '%s:%s' % (
+                _colourise(self.image_name, CYAN),
+                _colourise(self.image_tag, FUCHSIA)
+            ),
+            self.ports
+        )
+
+
+def main():
+    output = docker_ps(sys.argv[1:])
+    fp = StringIO(output)
+
+    reader = sorted(list(csv.reader(fp, delimiter=';')))
+    for row in reader:
+        print DPSRow(*row)
+
+
+def docker_ps(args=None):
+    args = args or []
+    return subprocess.check_output(['docker', 'ps'] + FORMAT_ARGS + args)
+
+
+if __name__ == '__main__':
+    main()

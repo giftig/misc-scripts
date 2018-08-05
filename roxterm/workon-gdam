@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Mostly just a copypasta from workon-xanweb
+# TODO: Make this more generic to keep it DRY
+
+DIR=$(readlink -f "$(dirname $0)")
+. $DIR/lib/check-roxterm-running
+
+SESSION_NAME='gdam'
+WORK_DIR="$HOME/Code/work"
+CORE_DIR="$WORK_DIR/gdam-core"
+DOCKER_DIR="$WORK_DIR/devops/a5_dockerise"
+
+# First create tmux sessions and split the panes up, if they don't exist
+tmux new-session -d -s gdam -c "$CORE_DIR" &&
+tmux split-window -d -h -t 0 -c "$CORE_DIR" &&
+tmux split-window -d -v -t 0 -c "$CORE_DIR"
+tmux split-window -d -v -t 2 -c "$DOCKER_DIR"
+
+check_roxterm_running
+
+# Now start roxterm tabs and load the appropriate sessions
+roxterm \
+  --geometry '1200x800' \
+  -T 'gdam' \
+  -n 'gdam' \
+  --execute "tmux -2 attach-session -t $SESSION_NAME"

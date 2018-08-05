@@ -1,0 +1,55 @@
+#!/bin/bash
+
+HOST='10.44.127.90'
+PORT=8161
+USERNAME=admin
+PASSWORD=admin
+QUEUE="test-$(whoami)"
+
+usage() {
+  cat << EOF
+    usage: $0 [--host] [--port] [--username] [--password] [--queue]
+EOF
+}
+
+while [[ "$1" != '' ]]; do
+  case "$1" in
+    --host)
+      shift
+      HOST="$1"
+      shift
+      ;;
+    --port)
+      shift
+      PORT="$1"
+      shift
+      ;;
+    --username|-u)
+      shift
+      USERNAME="$1"
+      shift
+      ;;
+    --password|-p)
+      shift
+      PASSWORD="$1"
+      shift
+      ;;
+    --queue|-q)
+      shift
+      QUEUE="$1"
+      shift
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+{
+  echo -n 'body='
+  cat /dev/stdin
+} | curl \
+  -u "$USERNAME:$PASSWORD" \
+  -d '@-' \
+  "http://$HOST:$PORT/api/message/$QUEUE?type=queue"

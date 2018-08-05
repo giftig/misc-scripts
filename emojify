@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Use an imagemagick container to resize images to 128x128px
+
+f="$1"
+IMAGE_NAME='acleancoder/imagemagick-full:latest'
+DIMENSIONS=128x128
+
+if [[ "$f" == '--help' || "$f" == '' ]]; then
+  echo "Usage: emojify FILENAME"
+  exit
+fi
+
+f=$(realpath "$f")
+fname=$(basename "$f")
+
+docker run \
+  --rm \
+  -v "$(dirname "$f"):/usr/src" \
+  -w /usr/src \
+  --entrypoint convert \
+  $IMAGE_NAME \
+    "/usr/src/$fname" \
+    -resize "$DIMENSIONS" \
+    "emoji-$fname"

@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# Combine several logfiles into a single logfile, with lines prefixed with truncated filenames
+
+trunc() {
+  local f="$1"
+  local len=${2:-36}
+  local actual_len=${#f}
+
+  if expr $actual_len '<=' $len &> /dev/null; then
+    TRUNCATED="$f"
+    return
+  fi
+  TRUNCATED="$(echo "$f" | cut -c "1-$(expr $len - 3)")..."
+}
+
+add_prefix() {
+  local prefix="$1"
+  local width="${2:-40}"
+  local adjusted=$(printf "%-${width}s" "$prefix")
+
+  sed -E "s/^/$adjusted/" /dev/stdin
+}
+
+while true; do
+  f="$1"
+  shift
+
+  if [[ "$f" == '' ]]; then
+    break
+  fi
+
+  trunc "$f" 36
+  cat "$f" | add_prefix "$TRUNCATED" 40
+done

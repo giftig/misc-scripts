@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Highlight lines or terms in input based on presence of an expression
+
+PHRASE="$1"
+COLOUR="$2"
+
+_find_colour() {
+  case "$1" in
+    red)
+      tput setaf 1
+      ;;
+    green)
+      tput setaf 2
+      ;;
+    yellow)
+      tput setaf 3
+      ;;
+    blue)
+      tput setaf 4
+      ;;
+    magenta|pink)
+      tput setaf 5
+      ;;
+    cyan)
+      tput setaf 6
+      ;;
+    grey)
+      tput setaf 7
+      ;;
+    purple)
+      tput setaf 128
+      ;;
+    *)
+      tput setaf $1
+      ;;
+  esac
+}
+
+COL="$(_find_colour $COLOUR)"
+RESET=$(tput sgr0)
+
+if [[ "$3" == '--line' || "$3" == '-l' ]]; then
+  EXPRESSION="s/^(.*$PHRASE.*)$/$COL\1$RESET/"
+else
+  EXPRESSION="s/^(.*)($PHRASE)(.*)$/\1$COL\2$RESET\3/g"
+fi
+
+cat /dev/stdin | sed -E "$EXPRESSION"

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+usage() {
+  echo 'Usage: scaladoc [library] [term]'
+  echo ''
+  echo 'library    Defaults to scala-lang. Can be a handful of useful libraries, '
+  echo '           eg. akka (or akka-actor), akka-http, spray-json, etc'
+  echo ''
+  echo 'term       An optional term to search for in the docs'
+}
+
+if [[ "$1" == '--help' ]]; then
+  usage
+  exit 0
+fi
+
+_open() {
+  if which xdg-open &> /dev/null; then
+    xdg-open "$@"
+    return
+  fi
+
+  if which open &> /dev/null; then
+    open "$@"
+    return
+  fi
+}
+
+_urlencode() {
+  python -c "from urllib import quote_plus;print quote_plus('''$1''')"
+}
+
+DOCROOT=''
+VERSION=current
+LANDING=''
+SEARCH_TERM=$(_urlencode "$2")
+SUPPORTS_SEARCH=1
+
+case "$1" in
+  scala|scala-lang|'')
+    DOCROOT='https://www.scala-lang.org/api'
+    ;;
+  akka|akka-actor)
+    DOCROOT='https://doc.akka.io/api/akka'
+    LANDING='akka/actor/index.html'
+    ;;
+  akka-stream|akka-streams)
+    DOCROOT='https://doc.akka.io/api/akka'
+    LANDING='akka/stream/index.html'
+    ;;
+  akka-http)
+    DOCROOT='https://doc.akka.io/api/akka-http'
+    LANDING='akka/http/scaladsl/index.html'
+    ;;
+  alpakka)
+    DOCROOT='https://developer.lightbend.com/docs/api/alpakka'
+    LANDING='akka/stream/alpakka/index.html'
+    ;;
+  spray-json)
+    DOCROOT='https://www.javadoc.io/doc/io.spray/spray-json_2.12'
+    VERSION='1.3.4'
+    ;;
+  *)
+    echo "Unrecognised library $1" >&2
+    exit 1
+    ;;
+esac
+
+_open "$DOCROOT/$VERSION/$LANDING?search=$SEARCH_TERM"

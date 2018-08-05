@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Quick script to use ffmpeg to convert mp4s to mp3s, discarding video
+
+strip_file() {
+  EXT_REGEX='\.[a-zA-Z0-9]{1,5}$'
+  if ! echo $1 | grep -E "$EXT_REGEX" &> /dev/null; then
+    echo "Check name of file $1"
+    return 1
+  fi
+
+  f=$(basename "$1")
+  dest="$(echo "$f" | sed -E "s/$EXT_REGEX/.mp3/")"
+
+  echo "$f --> $dest"
+
+  docker run \
+    --rm \
+    -v "$(realpath $(dirname "$1")):/usr/src" \
+    -w /usr/src \
+    giftig/ffmpeg \
+      -i "$f" \
+      "$dest"
+}
+
+RES=0
+
+while [[ "$1" != '' ]]; do
+  strip_file "$1"
+  RES=$(expr $RES + $?)
+  shift
+done
+
+if [[ "$RES" > 255 ]]; then
+  RES=255
+fi
+
+exit $RES

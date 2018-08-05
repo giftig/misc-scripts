@@ -1,0 +1,18 @@
+#!/bin/bash
+
+containers=$(docker ps -qa -f status=exited -f status=created -f status=dead)
+
+if [[ "$containers" != '' ]]; then
+  docker rm $containers || exit 1
+fi
+
+images=$(docker images -qf dangling=true)
+if [[ "$images" != '' ]]; then
+  docker rmi $images || exit 2
+fi
+
+volumes=$(docker volume ls -qf dangling=true)
+if [[ "$volumes" != '' ]]; then
+  docker volume rm $volumes || exit 3
+fi
+

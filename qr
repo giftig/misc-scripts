@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [[ "$1" == '' ]]; then
+  which xclip &> /dev/null || {
+    echo 'No input data and could not access clipboard'
+    exit 1
+  }
+  DATA=$(xclip -o)
+else
+  DATA=$1
+fi
+
+docker run --rm giftig/qrencode -o - "$DATA" | display

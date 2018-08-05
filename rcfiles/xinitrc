@@ -1,0 +1,2 @@
+setxkbmap -option compose:rwin
+setxkbmap -option super:lwin

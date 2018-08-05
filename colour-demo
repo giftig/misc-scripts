@@ -1,0 +1,19 @@
+#!/bin/bash
+
+first=$1
+last=$2
+
+if [[ "$first" == "" ]]; then
+  first=1
+fi
+
+if [[ "$last" == "" ]]; then
+  last=16
+fi
+
+for i in $(seq $first $last); do
+  echo "$(tput setaf $i)##### COLOUR $i #####$(tput sgr0)"
+done
+
+echo ''
+echo 'Use colour_demo [first] [last] for more / fewer colours'

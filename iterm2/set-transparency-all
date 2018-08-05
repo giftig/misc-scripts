@@ -1,0 +1,19 @@
+#!/usr/bin/env osascript
+
+on run argv
+  tell application "iTerm"
+    repeat with win in windows
+      tell win
+        repeat with t in tabs
+          tell t
+            repeat with sess in sessions
+              tell sess
+                set transparency to (item 1 of argv)
+              end tell
+            end repeat
+          end tell
+        end repeat
+      end tell
+    end repeat
+  end tell
+end run

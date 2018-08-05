@@ -1,0 +1,6 @@
+#!/bin/bash
+
+curl -s $ELASTIC_HTTP_URL/_cat/indices?v |
+  sed -E 's/ +/ /g' |
+  cut -d ' ' -f 3 |
+  sort
