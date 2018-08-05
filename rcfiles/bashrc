@@ -80,3 +80,6 @@ alias logack='ack --noenv --type-add=log:ext:log --log'
 alias amm='amm --banner "Ammonite started."'
 
 alias mp='mplayer -xy 1200'
+
+# Ensure symlinked dirs expand with trailing slash in autocomplete
+bind 'set mark-symlinked-directories on'
