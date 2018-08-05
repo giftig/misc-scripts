@@ -3,5 +3,8 @@
 *.swo
 
 /work
-*/ammonite/session
 /priv
+
+*/ammonite/session
+*/ammonite/cache
+*/ammonite/history
