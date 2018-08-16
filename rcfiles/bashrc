@@ -9,9 +9,10 @@ fi
 {
   . ~/.passwords
   . ~/.prettify
+  . ~/.env
   . ~/.bashrc_venv
   . ~/.work
-} > /dev/null
+} &> /dev/null
 
 export WORKON_HOME=~/.virtualenvs
 export PIP_VIRTUALENV_BASE=$WORKON_HOME
