@@ -7,9 +7,9 @@ fi
 
 # Import other useful files
 {
+  . ~/.env
   . ~/.passwords
   . ~/.prettify
-  . ~/.env
   . ~/.bashrc_venv
   . ~/.work
 } &> /dev/null
