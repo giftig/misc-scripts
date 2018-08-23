@@ -60,6 +60,10 @@ case "$1" in
     DOCROOT='https://www.javadoc.io/doc/io.spray/spray-json_2.12'
     VERSION='1.3.4'
     ;;
+  scalatest)
+    DOCROOT='http://doc.scalatest.org/'
+    VERSION='1.8'
+    ;;
   *)
     echo "Unrecognised library $1" >&2
     exit 1
