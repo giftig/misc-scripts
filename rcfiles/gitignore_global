@@ -1,0 +1,9 @@
+*.swp
+*.swo
+
+*.pyc
+*.class
+
+/target
+
+.docked-sbt
