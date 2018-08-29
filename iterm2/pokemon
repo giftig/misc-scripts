@@ -1,0 +1,3 @@
+#!/bin/bash
+
+pokemon $(sort -R "$HOME/scripts/resources/pokemon" | head -n 1)
