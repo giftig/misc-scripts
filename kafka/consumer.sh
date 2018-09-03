@@ -10,7 +10,7 @@ BROKERS="${KAFKA_BROKERS:-localhost:9092}"
 OFFSET="${KAFKA_OFFSET:-earliest}"
 ISOLATION_LEVEL="${KAFKA_ISOLATION_LEVEL:-read_committed}"
 
-TOPIC="${1:-${KAFKA_TOPIC:-giftig-test}}"
+TOPIC="${1:-${KAFKA_TOPIC:-$(whoami)-test}}"
 
 echo "${YELLOW}Reading from $TOPIC at $BROKERS...$RESET"
 
