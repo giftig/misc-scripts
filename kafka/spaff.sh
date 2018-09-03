@@ -10,11 +10,6 @@ MSG=''
 NUM=10000
 TOPIC="${KAFKA_TOPIC:-$(whoami)-test}"
 
-if [[ "$1" == '' ]]; then
-  echo 'Missing message argument' >&2
-  exit 1
-fi
-
 usage() {
   echo 'Usage: spaff [-t TOPIC] [-n NUM] message'
   echo ''
@@ -47,6 +42,11 @@ while [[ "$1" != '' ]]; do
       exit 1
       ;;
     *)
+      if [[ "$MSG" != '' ]]; then
+        usage
+        exit 2
+      fi
+
       MSG="$1"
       shift
       ;;
