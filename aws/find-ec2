@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [[ "$1" == '' ]]; then
+  echo 'Requires instance name' >&2
+  exit 1
+fi
+
+FORMAT='.Reservations | map(.Instances) | .[] | map((.Tags[] | select(.Key == "Name") | .Value), .NetworkInterfaces[0].PrivateIpAddress, .InstanceId)'
+PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2]'
+
+aws ec2 describe-instances --filters "Name=tag:Name,Values=*$1*" |
+  jq -r "$FORMAT $PRESENTATION" |
+  sort
