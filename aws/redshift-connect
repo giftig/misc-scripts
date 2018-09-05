@@ -1,0 +1,31 @@
+#!/bin/bash
+
+YELLOW=$(tput setaf 3)
+CYAN=$(tput setaf 6)
+RESET=$(tput sgr0)
+
+_find_cluster() {
+  local FORMAT='.Clusters[0] | [.Endpoint["Address"], (.Endpoint["Port"] | tostring), .DBName, .MasterUsername]'
+  local PRESENTATION='| .[0] + "|" + .[1] + "|" + .[2] + "|" + .[3]'
+  aws redshift describe-clusters --cluster-identifier "$1" |
+    jq -r "$FORMAT $PRESENTATION" || exit 1
+}
+
+_set_cluster_vars() {
+  local deets=$(_find_cluster "$1")
+  HOST=$(echo "$deets" | cut -d '|' -f 1)
+  PORT=$(echo "$deets" | cut -d '|' -f 2)
+  DB=$(echo "$deets" | cut -d '|' -f 3)
+  DB_USER=$(echo "$deets" | cut -d '|' -f 4)
+  CONN="$DB_USER@$HOST:$PORT/$DB"
+
+  PASSWORD=$(
+    aws redshift get-cluster-credentials --cluster-identifier "$1" --db-user "$DB_USER" |
+      jq -r '.DbPassword'
+  )
+}
+
+_set_cluster_vars "$1"
+
+echo "${YELLOW}Connecting to redshift at $CYAN$CONN$YELLOW...$RESET"
+PGPASSWORD="$PASSWORD" psql -U "IAM:$DB_USER" -h "$HOST" -p "$PORT" -d "$DB"
