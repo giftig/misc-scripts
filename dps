@@ -2,6 +2,7 @@
 
 from StringIO import StringIO
 import csv
+import re
 import subprocess
 import sys
 
@@ -40,21 +41,21 @@ class DPSRow(object):
         if 'Up' not in status:
             return _colourise(status, RED)
 
-        col = YELLOW if 'seconds' in status or 'minutes' in status else GREEN
+        col = YELLOW if 'second' in status or 'minute' in status else GREEN
 
         # Simplify / shorten the status a bit for easier display
-        status = status.replace(' seconds', 'm')
-        status = status.replace(' minutes', 'm')
-        status = status.replace(' hours', 'h')
-        status = status.replace(' weeks', 'w')
-        status = status.replace(' months', 'mo')
-        status = status.replace(' years', 'y')
-        status = status.replace('About a minute', '1m')
-        status = status.replace('About an hour', '1h')
-        status = status.replace('About a day', '1d')
-        status = status.replace('About a week', '1w')
-        status = status.replace('About a month', '1mo')
-        status = status.replace('About a year', '1y')
+        status = re.sub('([a-zA-Z]+)s', r'\1', status)
+        status = status.replace(' second', 's')
+        status = status.replace(' minute', 'm')
+        status = status.replace(' hour', 'h')
+        status = status.replace(' day', 'd')
+        status = status.replace(' week', 'w')
+        status = status.replace(' month', 'mo')
+        status = status.replace(' year', 'y')
+
+        status = status.replace('Less than', '<')
+        status = status.replace('About an', '~1')
+        status = status.replace('About a', '~1')
 
         return _colourise(status, col)
 
