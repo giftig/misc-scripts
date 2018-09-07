@@ -1,0 +1,32 @@
+#!/usr/bin/env osascript
+
+tell application "iTerm"
+  set mainWindow to (create window with default profile)
+
+  tell mainWindow
+    set sess1 to (current session)
+
+    tell sess1
+      set columns to 168
+      set rows to 72
+      set sess2 to (split vertically with default profile)
+    end tell
+
+    tell sess1 to split horizontally with default profile
+    tell sess1 to split horizontally with default profile
+    tell sess2 to split horizontally with default profile
+    tell sess2 to split horizontally with default profile
+
+    repeat with sess in sessions of tab 1 of mainWindow
+      tell sess
+        select sess
+        write text "cd ~/Code/ && ~/scripts/iterm2/pokemon && clear"
+        delay 0.5
+      end tell
+    end repeat
+
+    select sess1
+  end tell
+
+
+end tell
