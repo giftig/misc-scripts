@@ -4,6 +4,10 @@ YELLOW=$(tput setaf 3)
 CYAN=$(tput setaf 6)
 RESET=$(tput sgr0)
 
+usage() {
+  echo 'redshift-connect CLUSTER_NAME'
+}
+
 _find_cluster() {
   local FORMAT='.Clusters[0] | [.Endpoint["Address"], (.Endpoint["Port"] | tostring), .DBName, .MasterUsername]'
   local PRESENTATION='| .[0] + "|" + .[1] + "|" + .[2] + "|" + .[3]'
@@ -24,6 +28,11 @@ _set_cluster_vars() {
       jq -r '.DbPassword'
   )
 }
+
+if [[ "$1" == '' || "$1" == '--help' ]]; then
+  usage
+  exit 0
+fi
 
 _set_cluster_vars "$1"
 
