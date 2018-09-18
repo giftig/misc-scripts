@@ -60,7 +60,7 @@ dps() {
   $HOME/scripts/dps "$@"
 }
 
-sbt() {
+dsbt() {
   /opt/docker-sbt/wrapper.sh "$@"
 }
 
