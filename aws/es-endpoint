@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Get the endpoint of a managed elasticsearch instance by name
+echo "https://$(aws es describe-elasticsearch-domain --domain-name "$1" | jq -r '.DomainStatus.Endpoint')/"
