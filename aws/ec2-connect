@@ -4,22 +4,9 @@ cd $(dirname $0)
 TMP=$(mktemp /tmp/ec2-connect.XXXXXXXX)
 IP_PATTERN='(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
 
-./find-ec2 "$1" | grep -E "$IP_PATTERN" > "$TMP"
-
-RESULT_COUNT=$(wc -l "$TMP" | sed -E 's/[^0-9]//g')
-
-if [[ "$RESULT_COUNT" == 0 ]]; then
-  echo 'No results' >&2
+if ! which fzf &> /dev/null; then
+  echo 'Please install fzf to use this script'
   exit 1
 fi
 
-if [[ "$RESULT_COUNT" == 1 ]]; then
-  SELECTED_LINE="$(head -n 1 "$TMP")"
-else
-  PS3='Select host: '
-  select f in
-fi
-
-while read l; do
-  # FIXME: Incomplete
-done
+./find-ec2 "$1" | grep -E "$IP_PATTERN" | fzf -i -0 -1 +m --prompt='Select host: '
