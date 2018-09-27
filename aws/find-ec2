@@ -1,13 +1,55 @@
 #!/bin/bash
 
-if [[ "$1" == '' ]]; then
-  echo 'Requires instance name' >&2
-  exit 1
-fi
+TERM=''
 
 FORMAT='.Reservations | map(.Instances) | .[] | map((.Tags[] | select(.Key == "Name") | .Value), .NetworkInterfaces[0].PrivateIpAddress, .InstanceId)'
 PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2]'
 
-aws ec2 describe-instances --filters "Name=tag:Name,Values=*$1*" |
+usage() {
+  echo 'Usage: find-ec2 [-f FORMAT] [-p PRESENTATION] SEARCH_TERM'
+  echo ''
+  echo 'FORMAT          How to format the resulting information using jq to reduce it to useful info'
+  echo 'PRESENTATION    How to write that collected information'
+  echo 'SEARCH_TERM     Search term matching partial instance names (Name tag)'
+  echo ''
+  echo 'The default is to write tsv with instance names, IPs, and IDs'
+}
+
+while [[ "$1" != '' ]]; do
+  case "$1" in
+    -f|--format)
+      shift
+      FORMAT="$1"
+      shift
+      ;;
+    -p|--presentation)
+      shift
+      PRESENTATION="$1"
+      shift
+      ;;
+    -*)
+      echo "Unknown flag $1" 2>&1
+      usage >&2
+      exit 1
+      ;;
+    *)
+      if [[ "$TERM" != '' ]]; then
+        usage >&2
+        exit 1
+      fi
+
+      TERM="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ "$TERM" == '' ]]; then
+  usage >&2
+  exit 1
+fi
+
+
+aws ec2 describe-instances --filters "Name=tag:Name,Values=*$TERM*" |
   jq -r "$FORMAT $PRESENTATION" |
   sort

@@ -9,4 +9,11 @@ if ! which fzf &> /dev/null; then
   exit 1
 fi
 
-./find-ec2 "$1" | grep -E "$IP_PATTERN" | fzf -i -0 -1 +m --prompt='Select host: '
+ENTRY=$(
+  ./find-ec2 "$1" -p '| .[0] + " " + .[1] + " " + .[2]' |
+    grep -E "$IP_PATTERN" |
+    fzf -i -0 -1 +m --prompt='Select host: '
+)
+
+IP=$(echo "$ENTRY" | cut -d ' ' -f 2)
+echo "$IP"
