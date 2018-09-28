@@ -1,8 +1,17 @@
 #!/bin/bash
 
 cd $(dirname $0)
+
+YELLOW=$(tput setaf 3)
+RESET=$(tput sgr0)
+
+strip_instance_name() {
+  echo "$1" | sed -E 's/data\.//'
+}
+
 TMP=$(mktemp /tmp/ec2-connect.XXXXXXXX)
 IP_PATTERN='(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
+SSH_USER=ubuntu
 
 if ! which fzf &> /dev/null; then
   echo 'Please install fzf to use this script'
@@ -10,10 +19,39 @@ if ! which fzf &> /dev/null; then
 fi
 
 ENTRY=$(
-  ./find-ec2 "$1" -p '| .[0] + " " + .[1] + " " + .[2]' |
+  ./find-ec2 "$1" -p '| .[0] + " " + .[1] + " " + .[2]' 2> /dev/null |
     grep -E "$IP_PATTERN" |
     fzf -i -0 -1 +m --prompt='Select host: '
 )
 
+if [[ "$ENTRY" == '' ]]; then
+  echo 'No results' >&2
+  exit 1
+fi
+
+INSTANCE_NAME=$(echo "$ENTRY" | cut -d ' ' -f 1)
 IP=$(echo "$ENTRY" | cut -d ' ' -f 2)
-echo "$IP"
+
+if echo "$INSTANCE_NAME" | grep -E 'shadow|test' &> /dev/null; then
+  KEY="$HOME/.ssh/data-test.pem"
+else
+  if echo "$INSTANCE_NAME" | fgrep prod &> /dev/null; then
+    KEY="$HOME/.ssh/data-prod.pem"
+  else
+    echo "I don't know which key to use to access $INSTANCE_NAME!" >&2
+    exit 1
+  fi
+fi
+
+if echo "$INSTANCE_NAME" | fgrep 'cdm' &> /dev/null; then
+  SSH_USER=hadoop
+fi
+
+INST=$(strip_instance_name "$INSTANCE_NAME")
+OVERRIDE_PS1="$INST \[$(tput setaf 3)\]\\$\[$(tput sgr0)\] "
+
+# Stick my PS1 override into a bashrc and start a shell using that one
+LAUNCH_CMD="cp ~/.bashrc ~/.bashrc.n && echo 'export PS1="'"'"$OVERRIDE_PS1"'"'"' >> ~/.bashrc.n; bash --rcfile ~/.bashrc.n"
+echo "${YELLOW}Connecting to instance $INSTANCE_NAME ($IP)$RESET"
+
+ssh -t -i "$KEY" "$SSH_USER@$IP" "$LAUNCH_CMD"
