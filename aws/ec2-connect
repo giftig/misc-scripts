@@ -3,6 +3,7 @@
 cd $(dirname $0)
 
 YELLOW=$(tput setaf 3)
+CYAN=$(tput setaf 6)
 RESET=$(tput sgr0)
 
 strip_instance_name() {
@@ -48,7 +49,7 @@ if echo "$INSTANCE_NAME" | fgrep 'cdm' &> /dev/null; then
 fi
 
 INST=$(strip_instance_name "$INSTANCE_NAME")
-OVERRIDE_PS1="$INST \[$(tput setaf 3)\]\\$\[$(tput sgr0)\] "
+OVERRIDE_PS1="\[$CYAN\]$INST\[$RESET\] \W \[$YELLOW\]\\$\[$RESET\] "
 
 # Stick my PS1 override into a bashrc and start a shell using that one
 LAUNCH_CMD="cp ~/.bashrc ~/.bashrc.n && echo 'export PS1="'"'"$OVERRIDE_PS1"'"'"' >> ~/.bashrc.n; bash --rcfile ~/.bashrc.n"
