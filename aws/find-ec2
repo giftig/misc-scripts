@@ -2,7 +2,7 @@
 
 TERM=''
 
-FORMAT='.Reservations | map(.Instances) | .[] | map((.Tags[] | select(.Key == "Name") | .Value), .NetworkInterfaces[0].PrivateIpAddress, .InstanceId)'
+FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .NetworkInterfaces[0].PrivateIpAddress, .InstanceId]) | .[]'
 PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2]'
 
 usage() {
