@@ -10,6 +10,26 @@ strip_instance_name() {
   echo "$1" | sed -E 's/data\.//'
 }
 
+fudge_creds() {
+  # Some env-specific hackery around keys and users
+  # TODO: Make this less hacky?
+  if echo "$INSTANCE_NAME" | grep -E 'shadow|test' &> /dev/null; then
+    KEY="$HOME/.ssh/data-test.pem"
+  else
+    if echo "$INSTANCE_NAME" | fgrep prod &> /dev/null; then
+      KEY="$HOME/.ssh/data-prod.pem"
+    else
+      echo "I don't know which key to use to access $INSTANCE_NAME!" >&2
+      exit 1
+    fi
+  fi
+
+  if echo "$INSTANCE_NAME" | fgrep 'cdm' &> /dev/null; then
+    SSH_USER=hadoop
+    KEY=$(echo "$KEY" | sed 's|test|nonprod|g' | sed 's|prod|production|g')
+  fi
+}
+
 TMP=$(mktemp /tmp/ec2-connect.XXXXXXXX)
 IP_PATTERN='(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
 SSH_USER=ubuntu
@@ -33,20 +53,7 @@ fi
 INSTANCE_NAME=$(echo "$ENTRY" | cut -d ' ' -f 1)
 IP=$(echo "$ENTRY" | cut -d ' ' -f 2)
 
-if echo "$INSTANCE_NAME" | grep -E 'shadow|test' &> /dev/null; then
-  KEY="$HOME/.ssh/data-test.pem"
-else
-  if echo "$INSTANCE_NAME" | fgrep prod &> /dev/null; then
-    KEY="$HOME/.ssh/data-prod.pem"
-  else
-    echo "I don't know which key to use to access $INSTANCE_NAME!" >&2
-    exit 1
-  fi
-fi
-
-if echo "$INSTANCE_NAME" | fgrep 'cdm' &> /dev/null; then
-  SSH_USER=hadoop
-fi
+fudge_creds
 
 INST=$(strip_instance_name "$INSTANCE_NAME")
 OVERRIDE_PS1="\[$CYAN\]$INST\[$RESET\] \W \[$YELLOW\]\\$\[$RESET\] "

@@ -1,19 +1,35 @@
 #!/bin/bash
 
-TERM=''
+SEARCH_TERM=''
 
 FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .NetworkInterfaces[0].PrivateIpAddress, .InstanceId]) | .[]'
 PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2]'
+CACHE_FILE="/tmp/find-ec2-results-${AWS_ACCOUNT_ID:-default}-$(date +'%Y-%m-%d').json"
+USE_CACHE=1
 
 usage() {
-  echo 'Usage: find-ec2 [-f FORMAT] [-p PRESENTATION] SEARCH_TERM'
+  echo 'Usage: find-ec2 [-f FORMAT] [-p PRESENTATION] [-C] [SEARCH_TERM]'
+  echo ''
+  echo 'Options:'
   echo ''
   echo 'FORMAT          How to format the resulting information using jq to reduce it to useful info'
   echo 'PRESENTATION    How to write that collected information'
   echo 'SEARCH_TERM     Search term matching partial instance names (Name tag)'
   echo ''
+  echo '-C              Do not use cached results (results will be cached for the day otherwise)'
+  echo ''
   echo 'The default is to write tsv with instance names, IPs, and IDs'
 }
+
+describe_instances() {
+  if [[ "$USE_CACHE" == 0 || ! -f "$CACHE_FILE" ]]; then
+    echo "Replacing cache... $USE_CACHE $CACHE_FILE" >&2
+    aws ec2 describe-instances --filters "Name=tag:Name,Values=*" > "$CACHE_FILE"
+  fi
+
+  cat "$CACHE_FILE"
+}
+
 
 while [[ "$1" != '' ]]; do
   case "$1" in
@@ -27,29 +43,32 @@ while [[ "$1" != '' ]]; do
       PRESENTATION="$1"
       shift
       ;;
+    -c|--cache)
+      shift
+      USE_CACHE=1
+      ;;
+    -C|--no-cache)
+      shift
+      USE_CACHE=0
+      ;;
     -*)
-      echo "Unknown flag $1" 2>&1
+      echo "Unknown flag $1" >&2
       usage >&2
       exit 1
       ;;
     *)
-      if [[ "$TERM" != '' ]]; then
+      if [[ "$SEARCH_TERM" != '' ]]; then
         usage >&2
-        exit 1
+        exit 2
       fi
 
-      TERM="$1"
+      SEARCH_TERM="$1"
       shift
       ;;
   esac
 done
 
-if [[ "$TERM" == '' ]]; then
-  usage >&2
-  exit 1
-fi
-
-
-aws ec2 describe-instances --filters "Name=tag:Name,Values=*$TERM*" |
+describe_instances |
   jq -r "$FORMAT $PRESENTATION" |
+  fgrep "$SEARCH_TERM" |
   sort
