@@ -40,7 +40,7 @@ if ! which fzf &> /dev/null; then
 fi
 
 ENTRY=$(
-  ./find-ec2 "$1" -p '| .[0] + " " + .[1] + " " + .[2]' 2> /dev/null |
+  ./find-ec2 -p '| .[0] + " " + .[1] + " " + .[2]' "$1" 2> /dev/null |
     grep -E "$IP_PATTERN" |
     fzf -i -0 -1 +m --prompt='Select host: '
 )
