@@ -23,7 +23,6 @@ usage() {
 
 describe_instances() {
   if [[ "$USE_CACHE" == 0 || ! -f "$CACHE_FILE" ]]; then
-    echo "Replacing cache... $USE_CACHE $CACHE_FILE" >&2
     aws ec2 describe-instances --filters "Name=tag:Name,Values=*" > "$CACHE_FILE"
   fi
 
