@@ -19,6 +19,7 @@ cd $(dirname $0)
 
 YELLOW=$(tput setaf 3)
 CYAN=$(tput setaf 6)
+GREY=$(tput setaf 8)
 RESET=$(tput sgr0)
 
 CACHE_ARG=''
@@ -136,7 +137,8 @@ fi
 ENTRY=$(
   ./find-ec2 "$CACHE_ARG" -p '| .[0] + " " + .[1] + " " + .[2]' "$FILTER_TERM" 2> /dev/null |
     grep -E "$IP_PATTERN" |
-    fzf -i -0 -1 +m --prompt='Select host: '
+    fzf --ansi -i -0 -1 +m --prompt='Select host: ' |
+    tr -s ' '
 )
 
 if [[ "$ENTRY" == '' ]]; then
