@@ -1,10 +1,50 @@
 #!/bin/bash
 
+# Uses find-ec2 to create a list of known hosts, optionallty filtered,
+# and then use fzf to provide a nice interface for selecting the one we
+# want to connect to and setting your remote PS1 to a nice coloured
+# representation of which host you're on.
+
+# Some things are very specific to where I keep my keys, what my instance
+# naming convention is like, etc., so if you want to use this in different
+# contexts I've tried to segregate them so that:
+# - you can provide user/key to be different from mine, which will disable
+#   my highly-specific "credential fudging" which points to my different
+#   keys and host usernames
+# - you can remove or fiddle strip_instance_name to transform the instance
+#   name in a way which better suits you - I simply remove an unnecessary
+#   prefix common to some instances in my environment
+
 cd $(dirname $0)
 
 YELLOW=$(tput setaf 3)
 CYAN=$(tput setaf 6)
 RESET=$(tput sgr0)
+
+CACHE_ARG=''
+FILTER_TERM=''
+TASK='_conn'
+
+USER=ec2-user
+KEY="$HOME/.ssh/id_rsa"
+APPLY_FUDGE=1
+
+usage() {
+  echo 'Usage: ec2-connect [-C] [FILTER]'
+  echo '       ec2-connect --scp [-C] [FILTER]'
+  echo ''
+  echo 'Options:'
+  echo ''
+  echo '-C        Tell the underlying find-ec2 script to skip the cache'
+  echo '--key     Use the specified SSH key. Disables "credential fudging"'
+  echo '--user    Use the specified user. Disables "credential fudging"'
+  echo '--scp     Instead of connecting to the host, print an scp command'
+  echo '          which can easily be used to copy files to/from the host'
+  echo ''
+  echo 'FILTER    Filter instances by this term before presenting choices.'
+  echo '          If there is exactly one match for the term it will be '
+  echo '          picked automatically'
+}
 
 strip_instance_name() {
   echo "$1" | sed -E 's/data\.//'
@@ -30,6 +70,60 @@ fudge_creds() {
   fi
 }
 
+_print_scp() {
+  echo 'scp -i "'"$KEY"'" $LOCAL_FILE "'"$SSH_USER@$IP:~"'"'
+}
+
+_conn() {
+  OVERRIDE_PS1="\[$CYAN\]$INST\[$RESET\] \W \[$YELLOW\]\\$\[$RESET\] "
+
+  # Stick my PS1 override into a bashrc and start a shell using that one
+  LAUNCH_CMD="cp ~/.bashrc ~/.bashrc.n && echo 'export PS1="'"'"$OVERRIDE_PS1"'"'"' >> ~/.bashrc.n; bash --rcfile ~/.bashrc.n"
+  echo "${YELLOW}Connecting to instance $INSTANCE_NAME ($IP)$RESET"
+
+  ssh -t -i "$KEY" "$SSH_USER@$IP" "$LAUNCH_CMD"
+}
+
+while [[ "$#" != 0 ]]; do
+  case "$1" in
+    -C|--no-cache)
+      CACHE_ARG='-C'
+      shift
+      ;;
+    -k|--key)
+      APPLY_FUDGE=0
+      KEY="$1"
+      shift
+      ;;
+    --scp)
+      TASK='_print_scp'
+      shift
+      ;;
+    -u|--user)
+      APPLY_FUDGE=0
+      USER="$1"
+      shift
+      ;;
+    --help)
+      usage
+      exit 0
+      ;;
+    -*)
+      usage >&2
+      exit 1
+      ;;
+    *)
+      if [[ "$FILTER_TERM" != '' ]]; then
+        usage >&2
+        exit 2
+      fi
+
+      FILTER_TERM="$1"
+      shift
+      ;;
+  esac
+done
+
 TMP=$(mktemp /tmp/ec2-connect.XXXXXXXX)
 IP_PATTERN='(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
 SSH_USER=ubuntu
@@ -40,7 +134,7 @@ if ! which fzf &> /dev/null; then
 fi
 
 ENTRY=$(
-  ./find-ec2 -p '| .[0] + " " + .[1] + " " + .[2]' "$1" 2> /dev/null |
+  ./find-ec2 "$CACHE_ARG" -p '| .[0] + " " + .[1] + " " + .[2]' "$FILTER_TERM" 2> /dev/null |
     grep -E "$IP_PATTERN" |
     fzf -i -0 -1 +m --prompt='Select host: '
 )
@@ -53,13 +147,9 @@ fi
 INSTANCE_NAME=$(echo "$ENTRY" | cut -d ' ' -f 1)
 IP=$(echo "$ENTRY" | cut -d ' ' -f 2)
 
-fudge_creds
+if [[ "$APPLY_FUDGE" == 1 ]]; then
+  fudge_creds
+fi
 
 INST=$(strip_instance_name "$INSTANCE_NAME")
-OVERRIDE_PS1="\[$CYAN\]$INST\[$RESET\] \W \[$YELLOW\]\\$\[$RESET\] "
-
-# Stick my PS1 override into a bashrc and start a shell using that one
-LAUNCH_CMD="cp ~/.bashrc ~/.bashrc.n && echo 'export PS1="'"'"$OVERRIDE_PS1"'"'"' >> ~/.bashrc.n; bash --rcfile ~/.bashrc.n"
-echo "${YELLOW}Connecting to instance $INSTANCE_NAME ($IP)$RESET"
-
-ssh -t -i "$KEY" "$SSH_USER@$IP" "$LAUNCH_CMD"
+$TASK
