@@ -9,6 +9,7 @@ IMAGE='wurstmeister/kafka:latest'
 BROKERS="${KAFKA_BROKERS:-localhost:9092}"
 OFFSET="${KAFKA_OFFSET:-earliest}"
 ISOLATION_LEVEL="${KAFKA_ISOLATION_LEVEL:-read_committed}"
+FROM_BEGINNING_FLAG=''
 
 TOPIC="${1:-${KAFKA_TOPIC:-$(whoami)-test}}"
 
@@ -20,6 +21,8 @@ usage() {
   echo '-b, --brokers,'
   echo '--bootstrap-server   The kafka broker list to initially use to identify the cluster.'
   echo '                     You can also use the $KAFKA_BROKERS var.'
+  echo ''
+  echo '--from-beginning     Pass the "from beginning" flag through to the console consumer'
   echo ''
   echo '-g, --group,         The consumer group ID to use to consume'
   echo '--consumer-group'
@@ -41,6 +44,10 @@ while [[ "$1" != '' ]]; do
       shift
       BROKERS="$1"
       shift
+      ;;
+    --from-beginning)
+      shift
+      FROM_BEGINNING_FLAG='--from-beginning'
       ;;
     -g|--group|--consumer-group)
       shift
@@ -85,4 +92,5 @@ docker run --rm --entrypoint kafka-console-consumer.sh --net host $IMAGE \
   --topic "$TOPIC" \
   --bootstrap-server "$BROKERS" \
   --group "${GROUP:-"$(whoami)-docked-console-consumer-group"}" \
+  $FROM_BEGINNING_FLAG \
   --skip-message-on-error
