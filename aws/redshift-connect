@@ -8,15 +8,24 @@ usage() {
   echo 'redshift-connect CLUSTER_NAME'
 }
 
+_list_clusters() {
+  aws redshift describe-clusters | jq -r '.Clusters | map(.ClusterIdentifier) | .[]'
+}
+
 _find_cluster() {
   local FORMAT='.Clusters[0] | [.Endpoint["Address"], (.Endpoint["Port"] | tostring), .DBName, .MasterUsername]'
   local PRESENTATION='| .[0] + "|" + .[1] + "|" + .[2] + "|" + .[3]'
   aws redshift describe-clusters --cluster-identifier "$1" |
-    jq -r "$FORMAT $PRESENTATION" || exit 1
+    jq -r "$FORMAT $PRESENTATION" || exit $?
 }
 
 _set_cluster_vars() {
   local deets=$(_find_cluster "$1")
+  if [[ "$deets" == '' ]]; then
+    echo "Could not find cluster with name '$1'" >&2
+    exit 1
+  fi
+
   HOST=$(echo "$deets" | cut -d '|' -f 1)
   PORT=$(echo "$deets" | cut -d '|' -f 2)
   DB=$(echo "$deets" | cut -d '|' -f 3)
@@ -29,12 +38,21 @@ _set_cluster_vars() {
   )
 }
 
-if [[ "$1" == '' || "$1" == '--help' ]]; then
+if [[ "$1" == '--help' ]]; then
   usage
   exit 0
 fi
 
-_set_cluster_vars "$1"
+CLUSTER="$1"
+
+if [[ "$CLUSTER" == '' ]]; then
+  CLUSTER=$(_list_clusters | fzf --ansi -i -0 -1 +m --prompt='Select cluster: ') || {
+    echo 'No cluster found / selected' >&2
+    exit 1
+  }
+fi
+
+_set_cluster_vars "$CLUSTER"
 
 echo "${YELLOW}Connecting to redshift at $CYAN$CONN$YELLOW...$RESET"
 PGPASSWORD="$PASSWORD" psql -U "IAM:$DB_USER" -h "$HOST" -p "$PORT" -d "$DB"
