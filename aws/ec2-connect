@@ -92,6 +92,7 @@ while [[ "$#" != 0 ]]; do
       shift
       ;;
     -k|--key)
+      shift
       APPLY_FUDGE=0
       KEY="$1"
       shift
@@ -101,6 +102,7 @@ while [[ "$#" != 0 ]]; do
       shift
       ;;
     -u|--user)
+      shift
       APPLY_FUDGE=0
       USER="$1"
       shift
