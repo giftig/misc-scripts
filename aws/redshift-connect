@@ -4,6 +4,8 @@ YELLOW=$(tput setaf 3)
 CYAN=$(tput setaf 6)
 RESET=$(tput sgr0)
 
+SPLASH_LOCATION="$HOME/.redshift-connect-splash"
+
 usage() {
   echo 'redshift-connect CLUSTER_NAME'
 }
@@ -55,4 +57,6 @@ fi
 _set_cluster_vars "$CLUSTER"
 
 echo "${YELLOW}Connecting to redshift at $CYAN$CONN$YELLOW...$RESET"
+cat "$SPLASH_LOCATION" 2> /dev/null
+
 PGPASSWORD="$PASSWORD" psql -U "IAM:$DB_USER" -h "$HOST" -p "$PORT" -d "$DB"
