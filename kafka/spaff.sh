@@ -69,6 +69,6 @@ fi
 
 # Do the thing
 echo "${YELLOW}Sending $NUM messages to $TOPIC...$RESET"
-for i in $(seq 1 "$NUM"); do echo "$MSG"; done |
+for i in $(seq 1 "$NUM"); do cat "$MSG"; done |
   $(dirname $0)/producer.sh -t "$TOPIC"
 echo "${GREEN}Done!$RESET"

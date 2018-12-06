@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# A simple wrapper around the extremely useful awslogs application which
+# will prompt you to select your log group using fzf and otherwise pass
+# other arguments through to awslogs. Useful when you have myriad
+# hard-to-remember log groups.
+
+# Requires awslogs and fzf
+
+CACHE_FILE="/tmp/awslogs-cache-${AWS_ACCOUNT_ID:-default}-$(date +'%Y-%m-%d').json"
+
+get_groups() {
+  if [[ ! -f "$CACHE_FILE" ]]; then
+    awslogs groups > "$CACHE_FILE"
+  fi
+
+  cat "$CACHE_FILE"
+}
+
+awslogs get "$@" "$(get_groups | fzf -i +m)"

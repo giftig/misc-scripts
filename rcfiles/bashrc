@@ -68,6 +68,10 @@ cdl() {
   $HOME/scripts/format/cdl "$@"
 }
 
+logs() {
+  "$HOME/scripts/aws/logs" "$@"
+}
+
 alias vsplit='_in_tmux split -h'
 alias hsplit='_in_tmux split -v'
 
