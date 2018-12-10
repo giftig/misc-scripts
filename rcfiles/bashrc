@@ -30,6 +30,9 @@ export PS1='${PS1_MARKER}'"\W \[$(tput setaf 1)\]\$(__git_ps1 '(%s) ')\[$(tput s
 
 export PATH=$PATH:/usr/local/go/bin:/usr/local/heroku/bin:$HOME/.pokemon-terminal
 
+# Tell fzf to use ag so that it ignores .gitignore stuff
+export FZF_DEFAULT_COMMAND='ag -l ""'
+
 # Always use gvim
 alias vim=gvim
 
