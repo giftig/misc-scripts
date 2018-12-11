@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Find active emr clusters
+
+aws emr list-clusters --active | jq -r '.Clusters | map([.Name, .Id]) | .[] | .[0] + "\t\t" + .[1]' | grep -v EmrClusterObj | sort
