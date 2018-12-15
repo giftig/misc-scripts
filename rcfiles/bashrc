@@ -12,6 +12,7 @@ fi
   . ~/.prettify
   . ~/.bashrc_venv
   . ~/.work
+  . ~/.aliases
 } &> /dev/null
 
 export WORKON_HOME=~/.virtualenvs
