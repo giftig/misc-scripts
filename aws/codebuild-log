@@ -6,8 +6,15 @@ PROJECT="$DEFAULT_CODEBUILD_PROJECT"
 BUILD_ID=''
 EXTRA_FLAGS=''
 
+YELLOW=$(tput setaf 3)
+RESET=$(tput sgr0)
+
 usage() {
   echo 'Usage: codebuild-log [-p PROJECT] BUILD_ID'
+}
+
+_info() {
+  echo "$YELLOW$1$RESET"
 }
 
 while [[ "$#" != 0 ]]; do
@@ -45,8 +52,13 @@ if [[ "$PROJECT" == '' ]]; then
 fi
 
 if [[ "$BUILD_ID" == '' ]]; then
-  usage >&2
-  exit 3
+  _info 'No build ID provided; trying latest...'
+  BUILD_ID=$(
+    aws codebuild list-builds-for-project --project-name "$PROJECT" |
+      jq -r '.ids | .[0]' |
+      cut -d ':' -f 2
+  ) || exit 3
+  _info "Using build $BUILD_ID"
 fi
 
 awslogs get $EXTRA_FLAGS -s '1970-01-01 00:00:00' -G -S /aws/codebuild/$PROJECT $BUILD_ID
