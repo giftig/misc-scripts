@@ -15,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 import ammonite.ops._
+import com.typesafe.config.ConfigFactory
 
 import ExecutionContext.Implicits.global
 
