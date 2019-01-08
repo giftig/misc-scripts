@@ -17,4 +17,7 @@ get_groups() {
   cat "$CACHE_FILE"
 }
 
-awslogs get "$@" "$(get_groups | fzf -i +m)"
+LOG_GROUP=$(get_groups | fzf -i +m)
+echo "$(tput setaf 2)Reading log group $LOG_GROUP$(tput sgr0)"
+
+awslogs get "$@" "$LOG_GROUP"

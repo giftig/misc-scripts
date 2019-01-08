@@ -33,8 +33,9 @@ usage() {
   echo '-o, --offset         The kafka offset to use if none exists for the consumer group.'
   echo '                     Defaults to earliest'
   echo ''
-  echo '-t, --topic TOPIC    The kafka topic to spaff; you can also use the $KAFKA_TOPIC env var'
-  echo "                     If neither is set, defaults to $(whoami)-test"
+  echo '-t, --topic TOPIC    The kafka topic from which to read; you can also use the'
+  echo '                     $KAFKA_TOPIC env var. If neither is set, defaults'
+  echo "                     to $(whoami)-test"
 }
 
 # Parse args
