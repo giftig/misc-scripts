@@ -76,6 +76,11 @@ logs() {
   "$HOME/scripts/aws/logs" "$@"
 }
 
+# Kitty icat
+icat() {
+  kitty +kitten icat "$@"
+}
+
 alias vsplit='_in_tmux split -h'
 alias hsplit='_in_tmux split -v'
 

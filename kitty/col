@@ -1,0 +1,45 @@
+#!/bin/bash
+RED='#400000'
+BLUE='#000040'
+GREEN='#004000'
+PURPLE='#400040'
+ORANGE='#804000'
+GREY='#404040'
+
+case "$1" in
+  red)
+    COL="$RED"
+    ;;
+  blue)
+    COL="$BLUE"
+    ;;
+  green)
+    COL="$GREEN"
+    ;;
+  purple)
+    COL="$PURPLE"
+    ;;
+  orange)
+    COL="$ORANGE"
+    ;;
+  grey)
+    COL="$GREY"
+    ;;
+  random)
+    COL=$(
+      {
+        echo "$RED"
+        echo "$BLUE"
+        echo "$GREEN"
+        echo "$PURPLE"
+        echo "$ORANGE"
+        echo "$GREY"
+      } | sort -R | head -n 1
+    )
+    ;;
+  *)
+    echo "Unsupported colour $1" >&2
+    ;;
+esac
+
+kitty -o="background=$COL"
