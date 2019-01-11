@@ -7,6 +7,12 @@ YELLOW=$(tput setaf 3)
 MAGENTA=$(tput setaf 13)
 RESET=$(tput sgr0)
 
+usage() {
+  echo 'Usage: cloudwatch-alarms [--all]'
+  echo ''
+  echo 'Shows alarms in the ALARM state, or all if --all is provided.'
+}
+
 extract_alarms() {
   jq -r '.[] | map(.AlarmName + "|" + .AlarmDescription) | .[]'
 }
@@ -17,21 +23,37 @@ present_row() {
   sed -E "s/^([^|]+)\|(.*$)$/$COL\1$RESET: \2/"
 }
 
-echo ''
-echo 'ALARM:'
+SHOW_ALL=0
+
+if [[ "$1" == '--all' ]]; then
+  SHOW_ALL=1
+else
+  if [[ "$1" == '--help' ]]; then
+    usage
+    exit 0
+  fi
+fi
+
+if [[ "$SHOW_ALL" == 1 ]]; then
+  echo ''
+  echo 'ALARM:'
+fi
+
 aws cloudwatch describe-alarms --state-value ALARM |
   extract_alarms |
   present_row "$MAGENTA" || exit 1
 
 
-echo ''
-echo 'INSUFFICIENT DATA:'
-aws cloudwatch describe-alarms --state-value INSUFFICIENT_DATA |
-  extract_alarms |
-  present_row "$YELLOW" || exit 2
+if [[ "$SHOW_ALL" == 1 ]]; then
+  echo ''
+  echo 'INSUFFICIENT DATA:'
+  aws cloudwatch describe-alarms --state-value INSUFFICIENT_DATA |
+    extract_alarms |
+    present_row "$YELLOW" || exit 2
 
-echo ''
-echo 'OK:'
-aws cloudwatch describe-alarms --state-value OK |
-  extract_alarms |
-  present_row "$GREEN" || exit 3
+  echo ''
+  echo 'OK:'
+  aws cloudwatch describe-alarms --state-value OK |
+    extract_alarms |
+    present_row "$GREEN" || exit 3
+fi
