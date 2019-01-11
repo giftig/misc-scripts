@@ -1,0 +1,7 @@
+layout grid
+cd ~/Code
+title kitty
+launch bash
+launch bash
+launch bash
+launch bash
