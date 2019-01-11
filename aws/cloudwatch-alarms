@@ -17,21 +17,21 @@ present_row() {
   sed -E "s/^([^|]+)\|(.*$)$/$COL\1$RESET: \2/"
 }
 
-echo 'ALARM:'
 echo ''
+echo 'ALARM:'
 aws cloudwatch describe-alarms --state-value ALARM |
   extract_alarms |
   present_row "$MAGENTA" || exit 1
 
 
-echo 'INSUFFICIENT DATA:'
 echo ''
+echo 'INSUFFICIENT DATA:'
 aws cloudwatch describe-alarms --state-value INSUFFICIENT_DATA |
   extract_alarms |
   present_row "$YELLOW" || exit 2
 
-echo 'OK:'
 echo ''
+echo 'OK:'
 aws cloudwatch describe-alarms --state-value OK |
   extract_alarms |
   present_row "$GREEN" || exit 3
