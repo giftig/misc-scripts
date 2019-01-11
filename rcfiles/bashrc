@@ -90,5 +90,16 @@ alias amm='amm --banner "Ammonite started."'
 
 alias mp='mplayer -xy 1200'
 
+# Override OS-specific aliases
+{
+  unalias ls
+  unalias grep
+  unalias which
+} &> /dev/null
+
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
+
 # Ensure symlinked dirs expand with trailing slash in autocomplete
 bind 'set mark-symlinked-directories on'
