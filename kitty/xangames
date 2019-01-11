@@ -1,0 +1,3 @@
+#!/bin/bash
+
+kitty --session $(dirname "$0")/../rcfiles/kitty/sessions/xangames.session

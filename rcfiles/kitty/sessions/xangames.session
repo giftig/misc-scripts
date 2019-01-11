@@ -1,0 +1,16 @@
+layout grid
+cd ~/Code/xangames
+title xangames
+launch bash
+launch bash
+
+new_tab
+title go-xangames
+cd ~/Code/go-xangames
+launch bash
+launch bash
+
+new_tab
+title launcher
+cd ~/Code/xangames
+launch bash
