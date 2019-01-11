@@ -105,6 +105,7 @@ alias mp='mplayer -xy 1200'
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
+alias notes='vim -c RecentNotes'
 
 # Ensure symlinked dirs expand with trailing slash in autocomplete
 bind 'set mark-symlinked-directories on'
