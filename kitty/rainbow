@@ -1,0 +1,127 @@
+#!/bin/bash
+
+MODE_OVERRIDE=0
+MODE=activate
+DATA_FILE="$HOME/.rainbow"
+
+usage() {
+  echo 'Usage: rainbow [-as]'
+  echo ''
+  echo 'Manage a rainbow arrangement of kitty windows'
+  echo ''
+  echo 'Options:'
+  echo ''
+  echo '-a, --activate   Focus the rainbow windows. Create new ones if none are open.'
+  echo '-s, --start      Create and arrange the rainbow windows.'
+}
+
+_await_window() {
+  local TARGET_PID="$1"
+  local ATTEMPTS=0
+
+  while [[ $ATTEMPTS -lt 10 ]]; do
+    RES=$(wmctrl -l -p | fgrep "$TARGET_PID" | head -n 1 | cut -d ' ' -f 1)
+    if [[ "$RES" != '' ]]; then
+      echo "$RES"
+      return 0
+    fi
+    ATTEMPTS=$(expr "$ATTEMPTS" + 1)
+    sleep 0.1
+  done
+  return 1
+}
+
+_check_window() {
+  wmctrl -l | fgrep "$1" &> /dev/null
+}
+
+_kitty() {
+  local WINTITLE="$1"
+  local COLOUR="$2"
+  local LOCATION="$3"
+
+  kitty \
+    --session /dev/null \
+    --title "$WINTITLE" \
+    -o remember_window_size=no \
+    -o initial_window_width=600 \
+    -o initial_window_height=400 \
+    -o hide_window_decorations=yes \
+    -o background="$COLOUR" &!
+
+  local KITTY_PID="$!"
+  local WINDOW_NUM=$(_await_window "$KITTY_PID")
+  if [[ "$WINDOW_NUM" == '' ]]; then
+    echo 'Failed to find new kitty window' >&2
+    return 1
+  fi
+  wmctrl -i -r "$WINDOW_NUM" -e "0,$LOCATION,-1,-1"
+  echo "$WINDOW_NUM"
+}
+
+_override_mode() {
+  if [[ "$MODE_OVERRIDE" == 1 ]]; then
+    echo 'Incompatible flags provided.' >&2
+    usage >&2
+    exit 1
+  fi
+  MODE_OVERRIDE=1
+  MODE="$1"
+}
+
+start_rainbow() {
+  {
+    _kitty kittyred '#400000' 0,0
+    _kitty kittypurr '#400040' 0,400
+    _kitty kittygreen '#004000' 600,0
+    _kitty kittyblue '#000040' 600,400
+  } > "$DATA_FILE"
+}
+
+while [[ "$#" != 0 ]]; do
+  case $1 in
+    -s|--start)
+      _override_mode start
+      shift
+      ;;
+    -a|--activate)
+      _override_mode activate
+      shift
+      ;;
+    --help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+case "$MODE" in
+  start)
+    start_rainbow
+    ;;
+  activate)
+    if [[ ! -f "$DATA_FILE" ]]; then
+      start_rainbow
+      exit $?
+    fi
+
+    MISSING_COUNT=$(
+      tac "$DATA_FILE" | while read handle; do
+        if ! _check_window "$handle"; then
+          echo "$handle"
+          continue
+        fi
+        wmctrl -i -a "$handle" &> /dev/null
+      done | wc -l | cut -d ' ' -f 1
+    )
+
+    if [[ "$MISSING_COUNT" == $(wc -l "$DATA_FILE" | cut -d ' ' -f 1) ]]; then
+      start_rainbow
+      exit $?
+    fi
+    ;;
+esac
