@@ -1,0 +1,11 @@
+#!/bin/bash
+
+find . -iname '*.scala' |
+  while read f; do
+    git blame -w "$f"
+  done |
+  sed -E 's/^[a-f0-9]+ ([^ ]+ +)?\(([^ ]+).*$/\2/g' |
+  sort |
+  uniq -c |
+  sort -rn
+
