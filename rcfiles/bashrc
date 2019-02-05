@@ -95,16 +95,21 @@ alias amm='amm --banner "Ammonite started."'
 
 alias mp='mplayer -xy 1200'
 
-# Override OS-specific aliases
-{
-  unalias ls
-  unalias grep
-  unalias which
-} &> /dev/null
+## OS-SPECIFIC ALIASES
 
-alias ls='ls --color=auto'
+if [[ -d /Library ]]; then
+  # Mac-specific aliases
+  alias ls='ls -G'
+else
+  # Linux-specific aliases
+  unalias ls &> /dev/null
+  unalias which &> /dev/null
+  alias ls='ls --color=auto'
+  alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
+fi
+
+unalias grep &> /dev/null
 alias grep='grep --color=auto'
-alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
 alias notes='vim -c RecentNotes'
 
 # Ensure symlinked dirs expand with trailing slash in autocomplete
