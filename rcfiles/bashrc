@@ -112,5 +112,7 @@ unalias grep &> /dev/null
 alias grep='grep --color=auto'
 alias notes='vim -c RecentNotes'
 
+alias ffmpeg='docker run -it --rm -v "$(pwd):/usr/src" --entrypoint /bin/bash -w /usr/src giftig/ffmpeg'
+
 # Ensure symlinked dirs expand with trailing slash in autocomplete
 bind 'set mark-symlinked-directories on'
