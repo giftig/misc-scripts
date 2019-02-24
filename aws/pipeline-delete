@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Delete AWS data pipeline
+
+PIPELINE_ID=${1-$(cat pipelineid)}
+
+REGION="eu-west-1"
+
+aws --region "$REGION" datapipeline deactivate-pipeline --pipeline-id "$PIPELINE_ID"
+
+aws  --region "$REGION" datapipeline delete-pipeline --pipeline-id "$PIPELINE_ID"

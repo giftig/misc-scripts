@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Stop yarn application running on an EMR cluster
+
+EMR_NAME=$1
+APP_CLASS_NAME=$2
+SSH_KEY=$3
+
+function show_usage() {
+	echo -e "Usage:"
+	echo -e "\t\paramer 1: EMR cluster name"
+	echo -e "\t\paramer 2: App java main class name"
+	echo -e "\t\paramer 3: SSH key to use for connection"
+}
+
+function is_empty() {
+	variable=$1
+	if [ -z "${!variable}" ]; then
+		echo "Empty variable: $variable. Exiting ..."
+		exit 1
+	fi
+}
+
+if [[ $1 == "-h" ||$1 == "--help" ]]
+then
+	show_usage
+	exit 0
+fi
+
+if [ $# -lt 3 ]
+then
+	echo "Missing required number of parameters"
+	show_usage
+	exit 1
+fi
+
+EMR_LIST=$(aws emr list-clusters --active)
+is_empty EMR_LIST
+
+EMR_ID=$(echo $EMR_LIST | jq -r --arg NAME $EMR_NAME '.Clusters[] | select (.Name | contains($NAME)).Id')
+is_empty EMR_ID
+
+EMR_MASTER_ID=$(aws emr describe-cluster --cluster-id $EMR_ID | jq -r '.Cluster.InstanceGroups[] | select (.InstanceGroupType=="MASTER").Id')
+is_empty EMR_MASTER_ID
+
+EMR_INSTANCES=$(aws emr list-instances --cluster-id $EMR_ID)
+is_empty EMR_INSTANCES
+
+YARN_MASTER_HOST=$(echo $EMR_INSTANCES | jq -r --arg EMR_MASTER_ID $EMR_MASTER_ID '.Instances[] | select(.InstanceGroupId==$EMR_MASTER_ID).PrivateIpAddress')
+is_empty YARN_MASTER_HOST
+
+APP_LIST=$(ssh -o 'StrictHostKeyChecking no' -i $SSH_KEY hadoop@$YARN_MASTER_HOST yarn application -list 2>/dev/null)
+
+APP_ID=$(echo -e "$APP_LIST" | grep $APP_CLASS_NAME | cut -f 1)
+
+echo "Killing yarn application $APP_ID on cluster $EMR_ID"
+
+ssh -o 'StrictHostKeyChecking no' -i $SSH_KEY hadoop@$YARN_MASTER_HOST yarn application -kill $APP_ID

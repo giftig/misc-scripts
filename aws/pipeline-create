@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Create & activate AWS data pipeline
+
+# pipeline filepath location
+PIPELINE_DEFINITION=$1
+# service name
+SERVICE=${2:myservice}
+# environment name
+ENVIRONMENT=${3:test}
+
+OWNER=$(whoami)
+PRODUCT="data"
+REGION="eu-west-1"
+
+APPLICATION_PIPELINE_NAME="$PRODUCT.$SERVICE.$ENVIRONMENT"
+
+
+PIPELINE_ID=$(aws --region "$REGION" datapipeline create-pipeline \
+    --name "$APPLICATION_PIPELINE_NAME" \
+    --unique-id "$APPLICATION_PIPELINE_NAME" \
+    --tags \
+    key=Name,value="$APPLICATION_PIPELINE_NAME" \
+    key=product,value="$PRODUCT" \
+    key=service,value="$PRODUCT.$SERVICE" \
+    key=environment,value="$ENVIRONMENT" \
+    key=role,value="$ROLE" \
+    key=owner,value="$OWNER" | jq -r .pipelineId)
+
+aws --region "$REGION" datapipeline put-pipeline-definition \
+    --pipeline-id "$PIPELINE_ID" \
+    --pipeline-definition "file://$PIPELINE_DEFINITION"
+
+aws --region "$REGION" datapipeline activate-pipeline --pipeline-id "$PIPELINE_ID"
+
+echo $PIPELINE_ID > pipelineid
