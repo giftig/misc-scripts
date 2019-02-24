@@ -7,31 +7,31 @@ APP_CLASS_NAME=$2
 SSH_KEY=$3
 
 function show_usage() {
-	echo -e "Usage:"
-	echo -e "\t\paramer 1: EMR cluster name"
-	echo -e "\t\paramer 2: App java main class name"
-	echo -e "\t\paramer 3: SSH key to use for connection"
+  echo -e "Usage:"
+  echo -e "\t\paramer 1: EMR cluster name"
+  echo -e "\t\paramer 2: App java main class name"
+  echo -e "\t\paramer 3: SSH key to use for connection"
 }
 
 function is_empty() {
-	variable=$1
-	if [ -z "${!variable}" ]; then
-		echo "Empty variable: $variable. Exiting ..."
-		exit 1
-	fi
+  variable=$1
+  if [ -z "${!variable}" ]; then
+    echo "Empty variable: $variable. Exiting ..."
+    exit 1
+  fi
 }
 
 if [[ $1 == "-h" ||$1 == "--help" ]]
 then
-	show_usage
-	exit 0
+  show_usage
+  exit 0
 fi
 
 if [ $# -lt 3 ]
 then
-	echo "Missing required number of parameters"
-	show_usage
-	exit 1
+  echo "Missing required number of parameters"
+  show_usage
+  exit 1
 fi
 
 EMR_LIST=$(aws emr list-clusters --active)
