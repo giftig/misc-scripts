@@ -4,6 +4,9 @@ MODE_OVERRIDE=0
 MODE=activate
 DATA_FILE="$HOME/.rainbow"
 
+WIDTH=640
+HEIGHT=400
+
 usage() {
   echo 'Usage: rainbow [-as]'
   echo ''
@@ -44,8 +47,8 @@ _kitty() {
     --session /dev/null \
     --title "$WINTITLE" \
     -o remember_window_size=no \
-    -o initial_window_width=600 \
-    -o initial_window_height=400 \
+    -o initial_window_width="$WIDTH" \
+    -o initial_window_height="$HEIGHT" \
     -o hide_window_decorations=yes \
     -o background="$COLOUR" &!
 
@@ -72,9 +75,9 @@ _override_mode() {
 start_rainbow() {
   {
     _kitty kittyred '#400000' 0,0
-    _kitty kittypurr '#400040' 0,400
-    _kitty kittygreen '#004000' 600,0
-    _kitty kittyblue '#000040' 600,400
+    _kitty kittypurr '#400040' 0,$HEIGHT
+    _kitty kittygreen '#004000' $WIDTH,0
+    _kitty kittyblue '#000040' $WIDTH,$HEIGHT
   } > "$DATA_FILE"
 }
 
