@@ -1,6 +1,6 @@
 #!/bin/bash
 
-find . -iname '*.scala' |
+git ls-tree -r --name-only HEAD . | grep -i -E '\.(scala$|py|sh|sql|json|yaml|conf|feature|xml|md|mustache|js$)' |
   while read f; do
     git blame -w "$f"
   done |

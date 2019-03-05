@@ -2,7 +2,7 @@
 
 # Quickly grab a codebuild log using `awslogs`
 
-PROJECT="$DEFAULT_CODEBUILD_PROJECT"
+PROJECT=''
 BUILD_ID=''
 EXTRA_FLAGS=''
 
@@ -46,9 +46,15 @@ while [[ "$#" != 0 ]]; do
 done
 
 if [[ "$PROJECT" == '' ]]; then
-  echo 'No project specified; please provide the -p/--project option' >&2
-  echo 'or else set the DEFAULT_CODEBUILD_PROJECT environment variable' >&2
-  exit 2
+  PROJECT=$(
+    aws codebuild list-projects |
+      jq -r '.projects[]' |
+      fzf --ansi -i -0 -1 +m --prompt='Select project: '
+  )
+  if "$PROJECT" == '' ]]; then
+    echo 'No project provided' >&2
+    exit 2
+  fi
 fi
 
 if [[ "$BUILD_ID" == '' ]]; then
@@ -61,4 +67,7 @@ if [[ "$BUILD_ID" == '' ]]; then
   _info "Using build $BUILD_ID"
 fi
 
-awslogs get $EXTRA_FLAGS -s '1970-01-01 00:00:00' -G -S /aws/codebuild/$PROJECT $BUILD_ID
+awslogs get $EXTRA_FLAGS \
+  -s '1970-01-01 00:00:00' \
+  -G -S \
+  /aws/codebuild/$PROJECT $BUILD_ID

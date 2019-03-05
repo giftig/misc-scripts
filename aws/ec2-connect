@@ -67,7 +67,7 @@ fudge_creds() {
 
   if echo "$INSTANCE_NAME" | fgrep 'cdm' &> /dev/null; then
     SSH_USER=hadoop
-    KEY=$(echo "$KEY" | sed 's|test|nonprod|g' | sed 's|prod|production|g')
+    KEY=$(echo "$KEY" | sed 's|prod|production|g' | sed 's|test|nonprod|g')
   fi
 }
 

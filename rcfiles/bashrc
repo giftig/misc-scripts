@@ -97,10 +97,7 @@ alias mp='mplayer -xy 1200'
 
 ## OS-SPECIFIC ALIASES
 
-if [[ -d /Library ]]; then
-  # Mac-specific aliases
-  alias ls='ls -G'
-else
+if [[ ! -d /Library ]]; then
   # Linux-specific aliases
   unalias ls &> /dev/null
   unalias which &> /dev/null
