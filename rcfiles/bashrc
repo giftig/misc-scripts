@@ -113,3 +113,5 @@ alias ffmpeg='docker run -it --rm -v "$(pwd):/usr/src" --entrypoint /bin/bash -w
 
 # Ensure symlinked dirs expand with trailing slash in autocomplete
 bind 'set mark-symlinked-directories on'
+
+export TERM=xterm-256color

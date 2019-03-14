@@ -10,7 +10,7 @@ fi
 
 CDL=cdl
 if ! which cdl &> /dev/null; then
-  CDL=$SCRIPTS_DIR/docker-cardinal/wrapper.sh
+  CDL=$(dirname $0)/../format/cdl
 fi
 
 ELASTIC_HTTP_URL=${ELASTIC_HTTP_URL:-'localhost:9200'}
