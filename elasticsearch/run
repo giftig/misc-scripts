@@ -1,3 +1,7 @@
 #!/bin/bash
 
-docker run --rm -d -p 9200:9200 elasticsearch:latest
+docker run --rm -d \
+  -p 9200:9200 \
+  -e discovery.type=single-node \
+  -e ES_JAVA_OPTS='-Xms750m -Xmx750m' \
+  elasticsearch:6.4.0
