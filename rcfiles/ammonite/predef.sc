@@ -1,5 +1,5 @@
 import $exec.resources.Akka
-import $exec.resources.Elasticsearch
+import $exec.resources.Elasticsearch, Elasticsearch._
 import $exec.resources.Json
 import $exec.resources.Mongo
 import $exec.resources.Testing
