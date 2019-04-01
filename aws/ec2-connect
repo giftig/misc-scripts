@@ -54,7 +54,7 @@ strip_instance_name() {
 fudge_creds() {
   # Some env-specific hackery around keys and users
   # TODO: Make this less hacky?
-  if echo "$INSTANCE_NAME" | grep -E 'shadow|test' &> /dev/null; then
+  if echo "$INSTANCE_NAME" | grep -E 'shadow|test|integration' &> /dev/null; then
     KEY="$HOME/.ssh/data-test.pem"
   else
     if echo "$INSTANCE_NAME" | fgrep prod &> /dev/null; then
