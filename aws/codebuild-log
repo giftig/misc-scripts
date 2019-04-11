@@ -51,7 +51,7 @@ if [[ "$PROJECT" == '' ]]; then
       jq -r '.projects[]' |
       fzf --ansi -i -0 -1 +m --prompt='Select project: '
   )
-  if "$PROJECT" == '' ]]; then
+  if [[ "$PROJECT" == '' ]]; then
     echo 'No project provided' >&2
     exit 2
   fi
