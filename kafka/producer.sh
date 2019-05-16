@@ -77,7 +77,7 @@ fi
 
 EXTRA_PROPS=''
 if [[ "$ACK_ALL" == 1 ]]; then
-  EXTRA_PROPS="$EXTRA_PROPS --producer-property request.required.acks=all"
+  EXTRA_PROPS="$EXTRA_PROPS --producer-property acks=all"
 fi
 
 cat "$MESSAGE_FILE" | docker run -i --rm --entrypoint kafka-console-producer.sh --net host $IMAGE \
