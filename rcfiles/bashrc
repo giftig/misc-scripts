@@ -93,7 +93,7 @@ alias logack='ack --noenv --type-add=log:ext:log --log'
 
 alias amm='amm --banner "Ammonite started."'
 
-alias mp='mplayer -xy 1200'
+alias mp='mplayer -xy 1200 -geometry 50%:50%'
 
 ## OS-SPECIFIC ALIASES
 
