@@ -7,3 +7,5 @@
 /target
 
 .docked-sbt
+.metals
+.bloop
