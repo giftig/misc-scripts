@@ -1,4 +1,4 @@
-import $exec.resources.Akka
+import $exec.resources.Akka, Akka._
 import $exec.resources.Elasticsearch, Elasticsearch._
 import $exec.resources.Json
 import $exec.resources.Mongo
@@ -11,7 +11,7 @@ import $exec.resources.Slick, Slick._
 import $ivy.`org.scalaz::scalaz-core:7.2.12`
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
 import ammonite.ops._
