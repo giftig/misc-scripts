@@ -3,8 +3,8 @@
 DIR=$(readlink -f "$(dirname $0)")
 . $DIR/lib/check-roxterm-running
 
-XANWEB_DIR="$HOME/Code/public/xantoria-web"
-XANGAMES_DIR="$HOME/Code/public/xangames"
+XANWEB_DIR="$HOME/code/public/xantoria-web"
+XANGAMES_DIR="$HOME/code/public/xangames"
 
 # First create tmux sessions and split the panes up, if they don't exist
 # Activate the xantoria-web virtualenv by sending key sequences to the panes

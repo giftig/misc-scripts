@@ -1,5 +1,5 @@
 layout grid
-cd ~/Code
+cd ~/code
 title kitty
 launch bash
 launch bash

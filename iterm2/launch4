@@ -23,7 +23,7 @@ tell application "iTerm"
 
       tell sess
         select sess
-        write text "cd ~/Code/ && ~/scripts/iterm2/pokemon && clear"
+        write text "cd ~/code/ && ~/scripts/iterm2/pokemon && clear"
         delay 0.5
       end tell
     end repeat

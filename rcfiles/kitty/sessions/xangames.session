@@ -1,16 +1,16 @@
 layout grid
-cd ~/Code/xangames
+cd ~/code/xangames
 title xangames
 launch bash
 launch bash
 
 new_tab
 title go-xangames
-cd ~/Code/go-xangames
+cd ~/code/go-xangames
 launch bash
 launch bash
 
 new_tab
 title launcher
-cd ~/Code/xangames
+cd ~/code/xangames
 launch bash
