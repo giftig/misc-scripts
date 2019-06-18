@@ -115,3 +115,17 @@ alias ffmpeg='docker run -it --rm -v "$(pwd):/usr/src" --entrypoint /bin/bash -w
 bind 'set mark-symlinked-directories on'
 
 export TERM=xterm-256color
+
+# Shortcuts to some very useful scripts
+ec2() {
+  ~/scripts/aws/find-ec2 "$@"
+}
+
+become() {
+  . ~/.passwords
+  . ~/work/assume-role "$@"
+}
+
+conn() {
+  ~/scripts/aws/ec2-connect "$@"
+}
