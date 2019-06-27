@@ -121,11 +121,6 @@ ec2() {
   ~/scripts/aws/find-ec2 "$@"
 }
 
-become() {
-  . ~/.passwords
-  . ~/work/assume-role "$@"
-}
-
 conn() {
   ~/scripts/aws/ec2-connect "$@"
 }
