@@ -28,7 +28,6 @@ TASK='_conn'
 
 USER=ec2-user
 KEY="$HOME/.ssh/id_rsa"
-APPLY_FUDGE=1
 
 usage() {
   echo 'Usage: ec2-connect [-C] [FILTER]'
@@ -37,8 +36,8 @@ usage() {
   echo 'Options:'
   echo ''
   echo '-C        Tell the underlying find-ec2 script to skip the cache'
-  echo '--key     Use the specified SSH key. Disables "credential fudging"'
-  echo '--user    Use the specified user. Disables "credential fudging"'
+  echo '--key     Use the specified SSH key.'
+  echo '--user    Use the specified user.'
   echo '--scp     Instead of connecting to the host, print an scp command'
   echo '          which can easily be used to copy files to/from the host'
   echo ''
@@ -49,26 +48,6 @@ usage() {
 
 strip_instance_name() {
   echo "$1" | sed -E 's/data\.//'
-}
-
-fudge_creds() {
-  # Some env-specific hackery around keys and users
-  # TODO: Make this less hacky?
-  if echo "$INSTANCE_NAME" | grep -E 'shadow|test|integration' &> /dev/null; then
-    KEY="$HOME/.ssh/data-test.pem"
-  else
-    if echo "$INSTANCE_NAME" | fgrep prod &> /dev/null; then
-      KEY="$HOME/.ssh/data-prod.pem"
-    else
-      echo "I don't know which key to use to access $INSTANCE_NAME!" >&2
-      exit 1
-    fi
-  fi
-
-  if echo "$INSTANCE_NAME" | fgrep 'cdm' &> /dev/null; then
-    SSH_USER=hadoop
-    KEY=$(echo "$KEY" | sed 's|prod|production|g' | sed 's|test|nonprod|g')
-  fi
 }
 
 _print_scp() {
@@ -93,7 +72,6 @@ while [[ "$#" != 0 ]]; do
       ;;
     -k|--key)
       shift
-      APPLY_FUDGE=0
       KEY="$1"
       shift
       ;;
@@ -103,7 +81,6 @@ while [[ "$#" != 0 ]]; do
       ;;
     -u|--user)
       shift
-      APPLY_FUDGE=0
       USER="$1"
       shift
       ;;
@@ -150,10 +127,6 @@ fi
 
 INSTANCE_NAME=$(echo "$ENTRY" | cut -d ' ' -f 1)
 IP=$(echo "$ENTRY" | cut -d ' ' -f 2)
-
-if [[ "$APPLY_FUDGE" == 1 ]]; then
-  fudge_creds
-fi
 
 INST=$(strip_instance_name "$INSTANCE_NAME")
 $TASK
