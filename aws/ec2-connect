@@ -28,6 +28,7 @@ TASK='_conn'
 
 USER=ec2-user
 KEY="$HOME/.ssh/id_rsa"
+FIND_FORMAT=default
 
 usage() {
   echo 'Usage: ec2-connect [-C] [FILTER]'
@@ -40,6 +41,7 @@ usage() {
   echo '--user    Use the specified user.'
   echo '--scp     Instead of connecting to the host, print an scp command'
   echo '          which can easily be used to copy files to/from the host'
+  echo '--public  Find public IPs to connect to rather than private ones'
   echo ''
   echo 'FILTER    Filter instances by this term before presenting choices.'
   echo '          If there is exactly one match for the term it will be '
@@ -84,6 +86,11 @@ while [[ "$#" != 0 ]]; do
       USER="$1"
       shift
       ;;
+    -p|--pub|--public)
+      shift
+      FIND_FORMAT=pubip
+      shift
+      ;;
     --help)
       usage
       exit 0
@@ -114,7 +121,7 @@ if ! which fzf &> /dev/null; then
 fi
 
 ENTRY=$(
-  ./find-ec2 "$CACHE_ARG" -p '| .[0] + " " + .[1] + " " + .[2]' "$FILTER_TERM" 2> /dev/null |
+  ./find-ec2 "$CACHE_ARG" -p '| .[0] + " " + .[1] + " " + .[2]' -f "$FIND_FORMAT" "$FILTER_TERM" 2> /dev/null |
     grep -E "$IP_PATTERN" |
     fzf --ansi -i -0 -1 +m --prompt='Select host: ' |
     tr -s ' '
