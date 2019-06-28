@@ -2,9 +2,9 @@
 
 SEARCH_TERM=''
 
-FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .NetworkInterfaces[0].PrivateIpAddress, .InstanceId]) | .[]'
+FORMAT='default'
 PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2]'
-CACHE_FILE="/tmp/find-ec2-results-${AWS_ACCOUNT_ID:-default}-$(date +'%Y-%m-%d').json"
+CACHE_FILE="/tmp/find-ec2-results-${AWS_ACCESS_KEY_ID:-default}-$(date +'%Y-%m-%d').json"
 USE_CACHE=1
 
 usage() {
@@ -66,6 +66,18 @@ while [[ "$#" != 0 ]]; do
       ;;
   esac
 done
+
+# Predefined formats for ease of use
+case $FORMAT in
+  default)
+    FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .PrivateIpAddress, .InstanceId]) | .[]'
+    ;;
+  public|pubip|public_ip)
+    FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .PublicIpAddress, .InstanceId]) | .[]'
+    ;;
+  *)
+    ;;
+esac
 
 describe_instances |
   jq -r "$FORMAT $PRESENTATION" |
