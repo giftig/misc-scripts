@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  go:
+    image: giftig/go:latest
+    volumes:
+      - ${GO_REDIRECT_DATA_DIR}:/usr/src/db
+
+  go_static:
+    image: giftig/go-static:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - go
