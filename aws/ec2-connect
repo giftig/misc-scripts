@@ -26,8 +26,8 @@ CACHE_ARG=''
 FILTER_TERM=''
 TASK='_conn'
 
-USER=ec2-user
-KEY="$HOME/.ssh/id_rsa"
+SSH_USER=ec2-user
+KEY="${EC2_CONNECT_DEFAULT_KEY:-$HOME/.ssh/id_rsa}"
 FIND_FORMAT=default
 
 usage() {
@@ -113,7 +113,6 @@ done
 
 TMP=$(mktemp /tmp/ec2-connect.XXXXXXXX)
 IP_PATTERN='([0-9]{1,3}\.){3}[0-9]{1,3}'
-SSH_USER=ubuntu
 
 if ! which fzf &> /dev/null; then
   echo 'Please install fzf to use this script'
