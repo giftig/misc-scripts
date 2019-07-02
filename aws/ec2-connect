@@ -90,7 +90,6 @@ while [[ "$#" != 0 ]]; do
     -p|--pub|--public)
       shift
       FIND_FORMAT=pubip
-      shift
       ;;
     --help)
       usage
