@@ -111,7 +111,6 @@ while [[ "$#" != 0 ]]; do
   esac
 done
 
-TMP=$(mktemp /tmp/ec2-connect.XXXXXXXX)
 IP_PATTERN='([0-9]{1,3}\.){3}[0-9]{1,3}'
 
 if ! which fzf &> /dev/null; then
