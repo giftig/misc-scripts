@@ -7,13 +7,10 @@
 
 # Some things are very specific to where I keep my keys, what my instance
 # naming convention is like, etc., so if you want to use this in different
-# contexts I've tried to segregate them so that:
-# - you can provide user/key to be different from mine, which will disable
-#   my highly-specific "credential fudging" which points to my different
-#   keys and host usernames
-# - you can remove or fiddle strip_instance_name to transform the instance
-#   name in a way which better suits you - I simply remove an unnecessary
-#   prefix common to some instances in my environment
+# contexts I've tried to segregate them so that you can provide your own
+# implementations (including noop implementations by defining the following
+# scriptlets:
+# - ~/.ec2-connect/remote-ps1.sh
 
 cd $(dirname $0)
 
@@ -29,6 +26,8 @@ TASK='_conn'
 SSH_USER=ec2-user
 KEY="${EC2_CONNECT_DEFAULT_KEY:-$HOME/.ssh/id_rsa}"
 FIND_FORMAT=default
+
+REMOTE_PS1_SCRIPT="$HOME/.ec2-connect/remote-ps1.sh"
 
 usage() {
   echo 'Usage: ec2-connect [-C] [FILTER]'
@@ -48,16 +47,18 @@ usage() {
   echo '          picked automatically'
 }
 
-strip_instance_name() {
-  echo "$1" | sed -E 's/data\.//'
-}
-
 _print_scp() {
   echo 'scp -i "'"$KEY"'" $LOCAL_FILE "'"$SSH_USER@$IP:~"'"'
 }
 
 _conn() {
-  OVERRIDE_PS1="\[$CYAN\]$INST\[$RESET\] \W \[$YELLOW\]\\$\[$RESET\] "
+  # Default remote PS1 prefixes the instance name in cyan and then provides a yellow $ prompt
+  # To set your own, create an executable $REMOTE_PS1_SCRIPT which takes the instance name as an
+  # argument and writes the expected PS1 line to stdout
+  local OVERRIDE_PS1="\[$CYAN\]$INSTANCE_NAME\[$RESET\] \W \[$YELLOW\]\\$\[$RESET\] "
+  if [[ -f "$REMOTE_PS1_SCRIPT" ]]; then
+    OVERRIDE_PS1=$("$REMOTE_PS1_SCRIPT" "$INSTANCE_NAME")
+  fi
 
   # Stick my PS1 override into a bashrc and start a shell using that one
   LAUNCH_CMD="cp ~/.bashrc ~/.bashrc.n && echo 'export PS1="'"'"$OVERRIDE_PS1"'"'"' >> ~/.bashrc.n; bash --rcfile ~/.bashrc.n"
@@ -133,5 +134,4 @@ fi
 INSTANCE_NAME=$(echo "$ENTRY" | cut -d ' ' -f 1)
 IP=$(echo "$ENTRY" | cut -d ' ' -f 2)
 
-INST=$(strip_instance_name "$INSTANCE_NAME")
 $TASK
