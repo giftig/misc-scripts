@@ -8,9 +8,11 @@ RESET=$(tput sgr0)
 
 CACHE_ARG=''
 FILTER_TERM=''
+SKIP_PROMPT=0
+USE_STOP=0
 
 usage() {
-  echo 'Usage: term-ec2 [-C] [-f] [FILTER]'
+  echo 'Usage: term-ec2 [-C] [-f] [-s] [FILTER]'
   echo ''
   echo 'Search and destroy EC2 instances'
   echo ''
@@ -18,6 +20,7 @@ usage() {
   echo ''
   echo '-C        Tell the underlying find-ec2 script to skip the cache'
   echo '-f        Force terminating the instances without confirmation'
+  echo '-s        Stop instances instead of terminating them'
   echo 'FILTER    Optional filter string to pre-apply to the search'
 }
 
@@ -25,6 +28,14 @@ while [[ "$#" != 0 ]]; do
   case "$1" in
     -C|--no-cache)
       CACHE_ARG='-C'
+      shift
+      ;;
+    -f|--force)
+      SKIP_PROMPT=1
+      shift
+      ;;
+    -s|--stop)
+      USE_STOP=1
       shift
       ;;
     --help)
@@ -69,17 +80,28 @@ fi
 echo "${YELLOW}The following instances will be TERMINATED:"
 echo "$INSTANCES"
 echo "$RESET"
-read -n 1 -p "Is this OK? " conf
-echo ''
+
+if [[ "$SKIP_PROMPT" != 1 ]]; then
+  read -n 1 -p "Is this OK? " conf
+  echo ''
+fi
 
 if [[ "$conf" != 'y' && "$conf" != 'Y' ]]; then
   echo "${RED}Aborted!$RESET" >&2
   exit 1
 fi
 
-echo "${YELLOW}Terminating...$RESET"
+if [[ "$USE_STOP" == 1 ]]; then
+  VERB="Stopping"
+  SUBCMD=stop-instances
+else
+  VERB="Terminating"
+  SUBCMD=terminate-instances
+fi
+
+echo "$YELLOW$VERB...$RESET"
 echo ''
 
 echo "$INSTANCES" | while read inst; do
   echo $inst | rev | cut -d ' ' -f 1 | rev
-done | xargs aws ec2 terminate-instances --instance-ids
+done | xargs aws ec2 "$SUBCMD" --instance-ids
