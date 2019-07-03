@@ -1,0 +1,31 @@
+#!/bin/bash
+
+usage() {
+  echo 'Usage: ec2-tag INSTANCE_ID NAME_TAG'
+  echo '       ec2-tag INSTANCE_ID TAG=VALUE'
+}
+
+if [[ "$1" == '--help' ]]; then
+  usage
+  exit 0
+fi
+
+if [[ "$1" == '' || "$2" == '' ]]; then
+  usage
+  exit 1
+fi
+
+INSTANCE_ID="$1"
+TAG_DETAILS="$2"
+
+if ! echo "$TAG_DETAILS" | fgrep '='; then
+  TAG_KEY=Name
+  TAG_VALUE="$TAG_DETAILS"
+else
+  TAG_KEY=$(echo "$TAG_DETAILS" | cut -d '=' -f 1)
+  TAG_VALUE=$(echo "$TAG_DETAILS" | cut -d '=' -f 2)
+fi
+
+aws ec2 create-tags \
+  --resources "$INSTANCE_ID" \
+  --tag "Key=$TAG_KEY,Value=$TAG_VALUE"
