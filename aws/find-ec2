@@ -72,8 +72,11 @@ case $FORMAT in
   default)
     FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .PrivateIpAddress, .InstanceId]) | .[]'
     ;;
-  public|pubip|public_ip)
+  pub|public|pubip|public_ip)
     FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .PublicIpAddress, .InstanceId]) | .[]'
+    ;;
+  allips)
+    FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .PrivateIpAddress, .PublicIpAddress, .InstanceId]) | .[]'
     ;;
   *)
     ;;

@@ -1,0 +1,85 @@
+#!/bin/bash
+
+cd $(dirname "$0")
+
+RED=$(tput setaf 1)
+YELLOW=$(tput setaf 3)
+RESET=$(tput sgr0)
+
+CACHE_ARG=''
+FILTER_TERM=''
+
+usage() {
+  echo 'Usage: term-ec2 [-C] [-f] [FILTER]'
+  echo ''
+  echo 'Search and destroy EC2 instances'
+  echo ''
+  echo 'Options:'
+  echo ''
+  echo '-C        Tell the underlying find-ec2 script to skip the cache'
+  echo '-f        Force terminating the instances without confirmation'
+  echo 'FILTER    Optional filter string to pre-apply to the search'
+}
+
+while [[ "$#" != 0 ]]; do
+  case "$1" in
+    -C|--no-cache)
+      CACHE_ARG='-C'
+      shift
+      ;;
+    --help)
+      usage
+      exit 0
+      ;;
+    -*)
+      usage >&2
+      exit 1
+      ;;
+    *)
+      if [[ "$FILTER_TERM" != '' ]]; then
+        usage >&2
+        exit 2
+      fi
+
+      FILTER_TERM="$1"
+      shift
+      ;;
+  esac
+done
+
+if ! which fzf &> /dev/null; then
+  echo 'Please install fzf to use this script'
+  exit 1
+fi
+
+FIND_FORMAT=allips
+FIND_PRESENTATION='| .[0] + " " + .[1] + "/" + .[2] + " " + .[3]'
+
+INSTANCES=$(
+  ./find-ec2 "$CACHE_ARG" -f "$FIND_FORMAT" -p "$FIND_PRESENTATION" "$FILTER_TERM" 2> /dev/null |
+    fzf --ansi -i -0 -1 -m --prompt='Select instances: ' |
+    tr -s ' '
+)
+
+if [[ "$INSTANCES" == '' ]]; then
+  echo "${RED}Nothing selected.$RESET" >&2
+  exit 1
+fi
+
+echo "${YELLOW}The following instances will be TERMINATED:"
+echo "$INSTANCES"
+echo "$RESET"
+read -n 1 -p "Is this OK? " conf
+echo ''
+
+if [[ "$conf" != 'y' && "$conf" != 'Y' ]]; then
+  echo "${RED}Aborted!$RESET" >&2
+  exit 1
+fi
+
+echo "${YELLOW}Terminating...$RESET"
+echo ''
+
+echo "$INSTANCES" | while read inst; do
+  echo $inst | rev | cut -d ' ' -f 1 | rev
+done | xargs aws ec2 terminate-instances --instance-ids
