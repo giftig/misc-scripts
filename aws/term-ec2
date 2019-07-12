@@ -6,19 +6,19 @@ RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 RESET=$(tput sgr0)
 
-CACHE_ARG=''
+CACHE_ARG='-C'
 FILTER_TERM=''
 SKIP_PROMPT=0
 USE_STOP=0
 
 usage() {
-  echo 'Usage: term-ec2 [-C] [-f] [-s] [FILTER]'
+  echo 'Usage: term-ec2 [-c] [-f] [-s] [FILTER]'
   echo ''
   echo 'Search and destroy EC2 instances'
   echo ''
   echo 'Options:'
   echo ''
-  echo '-C        Tell the underlying find-ec2 script to skip the cache'
+  echo '-c        Tell the underlying find-ec2 script to use the cache'
   echo '-f        Force terminating the instances without confirmation'
   echo '-s        Stop instances instead of terminating them'
   echo 'FILTER    Optional filter string to pre-apply to the search'
@@ -26,8 +26,8 @@ usage() {
 
 while [[ "$#" != 0 ]]; do
   case "$1" in
-    -C|--no-cache)
-      CACHE_ARG='-C'
+    -c|--cache)
+      CACHE_ARG=''
       shift
       ;;
     -f|--force)
