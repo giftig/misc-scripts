@@ -5,16 +5,6 @@ if [ -f /etc/bashrc ]; then
   . /etc/bashrc
 fi
 
-# Import other useful files
-{
-  . ~/.env
-  . ~/.passwords
-  . ~/.prettify
-  . ~/.bashrc_venv
-  . ~/.work
-  . ~/.aliases
-} &> /dev/null
-
 export WORKON_HOME=~/.virtualenvs
 export PIP_VIRTUALENV_BASE=$WORKON_HOME
 export PIP_RESPECT_VIRTUALENV=true
@@ -124,3 +114,13 @@ ec2() {
 conn() {
   ~/scripts/aws/ec2-connect "$@"
 }
+
+# Import other useful files
+{
+  . ~/.env
+  . ~/.passwords
+  . ~/.prettify
+  . ~/.bashrc_venv
+  . ~/.work
+  . ~/.aliases
+} &> /dev/null
