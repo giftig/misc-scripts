@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 import sys
 from xml.dom import minidom
 
@@ -15,4 +15,4 @@ lines = [
 ]
 
 formatted = '\n'.join(lines)
-print formatted.encode('utf-8')
+print(formatted.encode('utf-8'))
