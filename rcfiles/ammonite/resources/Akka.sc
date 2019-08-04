@@ -29,6 +29,9 @@ object Akka {
         nextActor += 1
         sender() ! context.actorOf(props, name)
 
+      case s: String =>
+        println(s"Received message ($self): $s")
+
       case t: Throwable =>
         throw t
 
