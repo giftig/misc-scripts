@@ -1,5 +1,6 @@
 import $exec.resources.Akka, Akka._
 import $exec.resources.Aws
+import $exec.resources.Dynamo, Dynamo._
 import $exec.resources.Elasticsearch, Elasticsearch._
 import $exec.resources.Json
 import $exec.resources.Mongo
