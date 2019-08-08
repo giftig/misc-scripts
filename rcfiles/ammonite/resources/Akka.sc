@@ -9,6 +9,9 @@ import akka.pattern.ask
 import akka.stream._
 import akka.stream.scaladsl._
 
+implicit val system: ActorSystem = ActorSystem("amm")
+implicit val mat: Materializer = ActorMaterializer()
+
 object Akka {
   import scala.concurrent.ExecutionContext
   import scala.concurrent.duration.FiniteDuration
