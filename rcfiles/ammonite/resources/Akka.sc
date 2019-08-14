@@ -8,6 +8,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.stream._
 import akka.stream.scaladsl._
+import akka.util.Timeout
 
 implicit val system: ActorSystem = ActorSystem("amm")
 implicit val mat: Materializer = ActorMaterializer()
@@ -22,6 +23,9 @@ object Akka {
   class SandboxActor extends Actor {
     private implicit val ec: ExecutionContext = context.system.dispatcher
     private var nextActor: Int = 1
+
+    // Only one handler which gets overwritten because I don't want this too complex
+    private var additionalHandler: PartialFunction[Any, Any] = PartialFunction.empty
 
     override def receive: Receive = {
       case "ping" =>
@@ -47,6 +51,12 @@ object Akka {
 
       case SandboxActor.Reply(ref, msg) =>
         ref ! msg
+
+      case SandboxActor.Handle(f) =>
+        additionalHandler = f
+
+      case msg =>
+        additionalHandler.lift(msg) foreach { res => sender() ! res }
     }
   }
 
@@ -54,5 +64,6 @@ object Akka {
     val props: Props = Props[SandboxActor]
 
     case class Reply[T](ref: ActorRef, msg: T)
+    case class Handle(f: PartialFunction[Any, Any])
   }
 }
