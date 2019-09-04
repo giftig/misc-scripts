@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Trivial wrapper to allow the name 'xml' without python spazzing out
+# about me trying to import from the stdlib xml package
+
+$(dirname "$0")/_xml.py "$@"

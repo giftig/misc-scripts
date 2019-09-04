@@ -14,5 +14,4 @@ lines = [
     l.rstrip() for l in formatted.split('\n') if l.strip()
 ]
 
-formatted = '\n'.join(lines)
-print(formatted.encode('utf-8'))
+print('\n'.join(lines))
