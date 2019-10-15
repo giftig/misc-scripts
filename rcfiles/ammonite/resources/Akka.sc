@@ -6,6 +6,7 @@ import $ivy.`com.typesafe.akka::akka-http:10.1.8`
 import $ivy.`com.typesafe.akka::akka-http-spray-json:10.1.8`
 import $ivy.`com.typesafe.akka::akka-testkit:2.5.23`
 import $ivy.`com.typesafe.akka::akka-stream-testkit:2.5.23`
+import $ivy.`com.typesafe.akka::akka-http-testkit:10.1.8`
 import akka.actor._
 import akka.pattern.ask
 import akka.stream._
