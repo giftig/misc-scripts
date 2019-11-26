@@ -115,6 +115,21 @@ conn() {
   ~/scripts/aws/ec2-connect "$@"
 }
 
+jira() {
+  if [[ "$JIRA_SUBDOMAIN" == '' ]]; then
+    echo 'Set the $JIRA_SUBDOMAIN in ~/.work' >&2
+    return 1
+  fi
+
+  CARD="${1:-$(git rev-parse --abbrev-ref HEAD)}"
+  if ! echo "$CARD" | grep -E '^[A-Z]{1,6}\-[0-9]{1,8}$' &> /dev/null; then
+    echo "$CARD doesn't look like a ticket number" >&2
+    return 1
+  fi
+
+  open "https://$JIRA_SUBDOMAIN.atlassian.net/browse/$CARD"
+}
+
 # Import other useful files
 {
   . ~/.env
