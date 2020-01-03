@@ -1,0 +1,11 @@
+#!/bin/bash
+
+mp() {
+  mplayer -xy 1200 -geometry 50%:50% /usr/bin/mplayer "$@"
+}
+
+find . -iname '*.*' |
+  grep -E '(mp4|mpe?g|avi|mkv)' |
+  while read f; do realpath "$f"; done |
+  sort -R |
+  mp -playlist /dev/stdin
