@@ -1,0 +1,3 @@
+#!/bin/bash
+
+wmctrl -a $(wmctrl -l | tr -s ' ' | cut -d ' ' -f 4- | fzf)
