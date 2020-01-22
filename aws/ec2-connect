@@ -84,7 +84,7 @@ while [[ "$#" != 0 ]]; do
       ;;
     -u|--user)
       shift
-      USER="$1"
+      SSH_USER="$1"
       shift
       ;;
     -p|--pub|--public)
