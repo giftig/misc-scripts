@@ -71,18 +71,19 @@ icat() {
   kitty +kitten icat "$@"
 }
 
+ecr() {
+  $(aws ecr get-login --no-include-email --region eu-west-1)
+}
+
 alias vsplit='_in_tmux split -h'
 alias hsplit='_in_tmux split -v'
 
-# Useful aliases copied from work bashrc
 alias qf="$HOME/scripts/quickfind"
 alias centos='docker run --rm -it -w /mnt -v $(pwd):/mnt centos:latest /bin/bash'
 alias node='docker run --rm -it node:latest'
 alias 8='ack --ignore-dir=test --scala'
 alias logack='ack --noenv --type-add=log:ext:log --log'
-
 alias amm='amm --banner "Ammonite started."'
-
 alias mp='mplayer -xy 1200 -geometry 50%:50%'
 
 ## OS-SPECIFIC ALIASES
