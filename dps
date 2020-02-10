@@ -61,12 +61,33 @@ class DPSRow(object):
 
         return _colourise(status, col)
 
+    @staticmethod
+    def _abbreviate_image(name):
+        """
+        Shorten long image names, such as by trimming length AWS ECR names
+        down to a short representation
+
+        12345789.dkr.ecr.{region}.amazon.aws.com -> ecr[123456789]
+        """
+        if '/' not in name:
+            return name
+
+        comps = name.split('/')
+        repo = comps[0]
+        img = comps[1]
+
+        repo = re.sub(
+            '(\d+)\.dkr\.ecr\.[^\.]+\.amazonaws\.com', r'ecr[\1]', repo
+        )
+
+        return '{}/{}'.format(repo, img)
+
     def __str__(self):
         return '%-40s  %-16s  %-70s  %s' % (
             _colourise(self.names, CYAN),
             self._colourise_status(self.status),
             '%s:%s' % (
-                _colourise(self.image_name, CYAN),
+                _colourise(self._abbreviate_image(self.image_name), CYAN),
                 _colourise(self.image_tag, FUCHSIA)
             ),
             self.ports
@@ -79,7 +100,7 @@ def main():
 
     reader = sorted(list(csv.reader(fp, delimiter=';')))
     for row in reader:
-        print DPSRow(*row)
+        print(DPSRow(*row))
 
 
 def docker_ps(args=None):
