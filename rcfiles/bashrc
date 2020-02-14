@@ -62,6 +62,10 @@ cdl() {
   $HOME/scripts/format/cdl "$@"
 }
 
+dcr() {
+  docker-compose stop "$1" && docker-compose rm -f "$1" && docker-compose up -d "$1"
+}
+
 logs() {
   "$HOME/scripts/aws/logs" "$@"
 }
@@ -85,6 +89,13 @@ alias 8='ack --ignore-dir=test --scala'
 alias logack='ack --noenv --type-add=log:ext:log --log'
 alias amm='amm --banner "Ammonite started."'
 alias mp='mplayer -xy 1200 -geometry 50%:50%'
+
+# Vim modes
+alias vim-ocean='vim -c "color oceandeep"'
+alias vim-midnight='vim -c "color midnight"'
+alias vim-log='vim -c "color oceandeep" -c "AnsiEsc"'
+alias viml=vim-log
+alias vim-json='vim -c "set filetype=json"'
 
 ## OS-SPECIFIC ALIASES
 
