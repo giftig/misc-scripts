@@ -1,0 +1,55 @@
+#!/bin/bash
+
+INDEX_NAME=''
+DOC='/dev/stdin'
+DOC_ID=''
+
+usage() {
+  echo 'index -i INDEX [--doc FILE] [--id DOC_ID]'
+  echo ''
+  echo 'Index a document into elasticsearch on the given index'
+  echo 'Doc is read from stdin by default if no file is provided'
+  echo ''
+}
+
+while [[ "$#" != 0 ]]; do
+  case "$1" in
+    --index|-i)
+      shift
+      INDEX_NAME="$1"
+      shift
+      ;;
+    --doc)
+      shift
+      DOC="$1"
+      shift
+      ;;
+    --id)
+      shift
+      DOC_ID="$1"
+      shift
+      ;;
+    --help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ "$INDEX_NAME" == '' ]]; then
+  echo 'Missing index option' >&2
+  echo ''
+  usage >&2
+  exit 2
+fi
+
+curl -s \
+  -X POST \
+  -H 'Content-type: application/json' \
+  -d "@${DOC}" \
+  "${ELASTIC_HTTP_URL:-localhost:9200}/$INDEX_NAME/_doc/$DOC_ID" |
+    python -mjson.tool
