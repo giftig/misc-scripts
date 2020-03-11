@@ -62,10 +62,6 @@ cdl() {
   $HOME/scripts/format/cdl "$@"
 }
 
-dcr() {
-  docker-compose stop "$1" && docker-compose rm -f "$1" && docker-compose up -d "$1"
-}
-
 logs() {
   "$HOME/scripts/aws/logs" "$@"
 }
@@ -77,6 +73,11 @@ icat() {
 
 ecr() {
   $(aws ecr get-login --no-include-email --region eu-west-1)
+}
+
+dcr() {
+  local SERVICE="$1"
+  docker-compose stop "$SERVICE" && docker-compose rm -f "$SERVICE" && docker-compose up -d "$SERVICE"
 }
 
 alias vsplit='_in_tmux split -h'
