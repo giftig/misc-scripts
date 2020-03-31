@@ -23,7 +23,7 @@ CACHE_ARG=''
 FILTER_TERM=''
 TASK='_conn'
 
-SSH_USER=ec2-user
+SSH_USER=${EC2_CONNECT_DEFAULT_USER:-ec2-user}
 KEY="${EC2_CONNECT_DEFAULT_KEY:-$HOME/.ssh/id_rsa}"
 FIND_FORMAT=default
 
