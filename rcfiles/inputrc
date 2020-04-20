@@ -1,0 +1,9 @@
+# Up arrow
+"\e[A": history-search-backward
+# Down arrow
+"\e[B": history-search-forward
+
+# Ctrl-left
+"\e[1;5D" backward-word
+# Ctrl-right
+"\e[1;5C" forward-word
