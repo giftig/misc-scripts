@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [[ "$(docker ps -aqf name=swagger_editor)" != '' ]]; then
+  echo 'Container already exists.' >&2
+  echo 'docker rm -f swagger_editor to remove the old one first' >&2
+  exit 1
+fi
+
+docker run
+  --name swagger_editor
+  --rm
+  -d
+  -p 8080:8080
+  swaggerapi/swagger-editor &&
+    echo 'Swagger editor running on http://localhost:8080'
