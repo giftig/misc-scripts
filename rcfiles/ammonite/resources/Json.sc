@@ -4,3 +4,6 @@ import $ivy.`org.json4s::json4s-core:3.5.0`
 import $ivy.`org.json4s::json4s-ext:3.5.0`
 import $ivy.`org.json4s::json4s-native:3.5.0`
 import $ivy.`net.virtual-void::json-lenses:0.6.2`
+import $ivy.`io.circe::circe-core:0.13.0`
+import $ivy.`io.circe::circe-generic:0.13.0`
+import $ivy.`io.circe::circe-parser:0.13.0`
