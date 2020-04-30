@@ -89,7 +89,7 @@ def rewrite_file(ff):
     found_body = False
 
     # Strip blank lines until we encounter a non-blank line which
-    # doesn't start with 'package', and then insert out reformatted imports
+    # doesn't start with 'package', and then insert our reformatted imports
     # into this space
     for l in imports_stripped:
         if found_body or l.startswith('package'):
