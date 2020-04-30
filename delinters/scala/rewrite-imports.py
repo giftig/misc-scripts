@@ -5,7 +5,9 @@ import sys
 
 NAMESPACE = os.environ.get('SCALA_PROJECT_NAMESPACE', 'com.example')
 
+
 def _is_stdlib(s):
+    """Imports from stdlib like import scala.concurrent.duration.Duration"""
     prefixes = {
         'java.',
         'javax.',
@@ -18,8 +20,21 @@ def _is_stdlib(s):
 
     return False
 
+
 def _is_project(s):
+    """Imports from the current project, like import com.example.foo.Bar"""
     return s.startswith('import ' + NAMESPACE)
+
+
+def _is_class(s):
+    """Imports from a class/object like import DefaultJsonProtocol._"""
+    return s.startswith('import ') and len(s) > 7 and s[7].isupper()
+
+
+def _sort_key(s):
+    ignore_braces = s.replace('{', '').replace('}', '')
+    underscores_first = ignore_braces.replace('_', '@')
+    return underscores_first
 
 
 def rewrite_file(ff):
@@ -32,6 +47,7 @@ def rewrite_file(ff):
     stdlib_imports = []
     third_party_imports = []
     project_imports = []
+    class_imports = []
 
     for i in data:
         if not i.startswith('import'):
@@ -41,14 +57,22 @@ def rewrite_file(ff):
             stdlib_imports.append(i)
         elif _is_project(i):
             project_imports.append(i)
+        elif _is_class(i):
+            class_imports.append(i)
         else:
             third_party_imports.append(i)
 
-    stdlib_imports.sort()
-    third_party_imports.sort()
-    project_imports.sort()
+    stdlib_imports.sort(key=_sort_key)
+    third_party_imports.sort(key=_sort_key)
+    project_imports.sort(key=_sort_key)
+    class_imports.sort(key=_sort_key)
 
-    for import_list in [stdlib_imports, third_party_imports, project_imports]:
+    for import_list in [
+        stdlib_imports,
+        third_party_imports,
+        project_imports,
+        class_imports
+    ]:
         if import_list:
             import_list.insert(0, '\n')
 
@@ -56,6 +80,7 @@ def rewrite_file(ff):
         stdlib_imports +
         third_party_imports +
         project_imports +
+        class_imports +
         ['\n']
     )
 
