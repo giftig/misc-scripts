@@ -6,10 +6,10 @@ if [[ "$(docker ps -aqf name=swagger_editor)" != '' ]]; then
   exit 1
 fi
 
-docker run
-  --name swagger_editor
-  --rm
-  -d
-  -p 8080:8080
+docker run \
+  --name swagger_editor \
+  --rm \
+  -d \
+  -p 8080:8080 \
   swaggerapi/swagger-editor &&
     echo 'Swagger editor running on http://localhost:8080'
