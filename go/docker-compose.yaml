@@ -1,14 +1,14 @@
-version: '2'
+version: '3'
 
 services:
-  go:
+  backend:
     image: giftig/go:latest
     volumes:
       - ${GO_REDIRECT_DATA_DIR}:/usr/src/db
 
-  go_static:
+  frontend:
     image: giftig/go-static:latest
     ports:
-      - "80:80"
+      - 80:80
     depends_on:
-      - go
+      - backend
