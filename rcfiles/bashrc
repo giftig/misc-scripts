@@ -106,6 +106,8 @@ if [[ ! -d /Library ]]; then
   unalias which &> /dev/null
   alias ls='ls --color=auto'
   alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
+
+  alias open=xdg-open
 fi
 
 unalias grep &> /dev/null
