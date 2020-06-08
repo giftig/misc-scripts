@@ -88,7 +88,7 @@ alias centos='docker run --rm -it -w /mnt -v $(pwd):/mnt centos:latest /bin/bash
 alias node='docker run --rm -it node:latest'
 alias 8='ack --ignore-dir=test --scala'
 alias logack='ack --noenv --type-add=log:ext:log --log'
-alias amm='amm --banner "Ammonite started."'
+alias amm='amm --banner "Ammonite started." --no-remote-logging'
 alias mp='mplayer -xy 1200 -geometry 50%:50%'
 
 # Vim modes
