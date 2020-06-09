@@ -3,7 +3,7 @@
 import os
 import sys
 
-NAMESPACE = os.environ.get('SCALA_PROJECT_NAMESPACE', 'com.example')
+NAMESPACE = os.environ.get('SCALA_PROJECT_NAMESPACE')
 
 
 def _is_stdlib(s):
@@ -49,8 +49,28 @@ def rewrite_file(ff):
     project_imports = []
     class_imports = []
 
-    for i in data:
+    continuation = False  # Multi-line import (brace left unclosed)
+    i = None
+
+    imports_stripped = []
+
+    for line in data:
+        if continuation:
+            i += line
+
+            if '}' in line:
+                continuation = False
+            else:
+                continue
+        else:
+            i = line
+
         if not i.startswith('import'):
+            imports_stripped.append(i)
+            continue
+
+        if '{' in line and '}' not in line:
+            continuation = True
             continue
 
         if _is_stdlib(i):
@@ -84,7 +104,6 @@ def rewrite_file(ff):
         ['\n']
     )
 
-    imports_stripped = [l for l in data if not l.startswith('import')]
     patched = []
     found_body = False
 
@@ -112,6 +131,12 @@ def main():
     if len(sys.argv) <= 1:
         print('Filenames to rewrite required')
         sys.exit(1)
+
+    if not NAMESPACE:
+        print(
+            'You must provide a namespace via the SCALA_PROJECT_NAMESPACE'
+            'environment variable'
+        )
 
     print('Own project namespace: {}'.format(NAMESPACE))
     for f in sys.argv[1:]:
