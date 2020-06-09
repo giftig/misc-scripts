@@ -19,7 +19,8 @@ export DOCKER_URL='unix:///var/run/docker.sock'
 
 export PS1='${PS1_MARKER}'"\W \[$(tput setaf 1)\]\$(__git_ps1 '(%s) ')\[$(tput setaf 3)\]\[$(tput bold)\]\\$ \[$(tput sgr0)\]"
 
-export PATH=$PATH:/usr/local/go/bin:/usr/local/heroku/bin:$HOME/.pokemon-terminal
+PATH="$PATH:/usr/local/go/bin:/usr/local/heroku/bin:$HOME/.pokemon-terminal"
+export PATH="$PATH:/opt/coursier/bin:$HOME/.local/share/coursier/bin"
 
 # Tell fzf to use ag so that it ignores .gitignore stuff
 export FZF_DEFAULT_COMMAND='ag -l ""'
