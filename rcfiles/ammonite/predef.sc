@@ -1,3 +1,6 @@
+// Needs to be early, before slf4j loggers get initialised
+import $exec.resources.Logging
+
 import $exec.resources.Akka, Akka._
 import $exec.resources.Aws
 import $exec.resources.Dynamo, Dynamo._

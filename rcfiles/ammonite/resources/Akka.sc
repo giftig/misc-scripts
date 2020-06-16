@@ -13,8 +13,18 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.stream.testkit.scaladsl._
 import akka.util.Timeout
+import com.typesafe.config.{Config, ConfigFactory}
 
-implicit val system: ActorSystem = ActorSystem("amm")
+val defaultAkkaConfig: Config = ConfigFactory.parseString(
+  """
+  akka {
+    loggers = ["akka.event.slf4j.Slf4jLogger"]
+    loglevel = DEBUG
+    logging = "akka.event.slf4j.Slf4jLoggingFilter"
+  }
+  """
+)
+implicit val system: ActorSystem = ActorSystem("amm", defaultAkkaConfig)
 implicit val mat: Materializer = ActorMaterializer()
 
 object Akka {
