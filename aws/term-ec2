@@ -77,7 +77,17 @@ if [[ "$INSTANCES" == '' ]]; then
   exit 1
 fi
 
-echo "${YELLOW}The following instances will be TERMINATED:"
+if [[ "$USE_STOP" == 1 ]]; then
+  VERB="Stopping"
+  WARNING_VERB='STOPPED'
+  SUBCMD=stop-instances
+else
+  VERB="Terminating"
+  WARNING_VERB='TERMINATED'
+  SUBCMD=terminate-instances
+fi
+
+echo "${YELLOW}The following instances will be $WARNING_VERB:"
 echo "$INSTANCES"
 echo "$RESET"
 
@@ -89,14 +99,6 @@ fi
 if [[ "$conf" != 'y' && "$conf" != 'Y' ]]; then
   echo "${RED}Aborted!$RESET" >&2
   exit 1
-fi
-
-if [[ "$USE_STOP" == 1 ]]; then
-  VERB="Stopping"
-  SUBCMD=stop-instances
-else
-  VERB="Terminating"
-  SUBCMD=terminate-instances
 fi
 
 echo "$YELLOW$VERB...$RESET"
