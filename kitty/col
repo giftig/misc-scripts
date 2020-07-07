@@ -6,6 +6,8 @@ PURPLE='#400040'
 ORANGE='#804000'
 GREY='#404040'
 
+SESSION_FILE="${KITTY_SESSION_FILE:-$HOME/.kitty/default.session}"
+
 case "$1" in
   red)
     COL="$RED"
@@ -28,11 +30,8 @@ case "$1" in
   random)
     COL=$(
       {
-        echo "$RED"
         echo "$BLUE"
-        echo "$GREEN"
         echo "$PURPLE"
-        echo "$ORANGE"
         echo "$GREY"
       } | sort -R | head -n 1
     )
@@ -43,4 +42,4 @@ case "$1" in
     ;;
 esac
 
-kitty -o="background=$COL" &!
+kitty --session "$SESSION_FILE" -o="background=$COL" &!
