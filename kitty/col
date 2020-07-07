@@ -27,7 +27,7 @@ case "$1" in
   grey)
     COL="$GREY"
     ;;
-  random)
+  random|'')
     COL=$(
       {
         echo "$BLUE"
@@ -42,4 +42,4 @@ case "$1" in
     ;;
 esac
 
-kitty --session "$SESSION_FILE" -o="background=$COL" &!
+nohup kitty --session "$SESSION_FILE" -o="background=$COL" & disown
