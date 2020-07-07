@@ -1,0 +1,20 @@
+#!/bin/bash
+
+cd $(dirname "$0")
+
+PROFILE_DIR="$HOME/.kitty/"
+PROFILE=$(
+  ls -1 "$PROFILE_DIR/"*.session |
+    sed -E 's/^.*\/(.+)\.session/\1/g' |
+    fzf
+)
+PROFILE="$PROFILE_DIR/$PROFILE.session"
+COL=$(
+  {
+    echo blue
+    echo grey
+    echo purple
+  } | fzf
+)
+
+KITTY_SESSION_FILE="$PROFILE" ./col "$COL"
