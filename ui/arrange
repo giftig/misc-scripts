@@ -1,0 +1,30 @@
+#!/bin/bash
+
+ACTIVE_WINDOWS=$(wmctrl -l -p)
+
+L_DIM='956,1027'
+R_DIM='956,1080'
+POS_1="0,0,0,$L_DIM"
+POS_2="0,960,0,$L_DIM"
+POS_3="0,1920,0,$R_DIM"
+POS_4="0,2880,0,$R_DIM"
+
+arrange_process() {
+  local pname="$1"
+  local pos="$2"
+  echo "Arranging $pname..."
+
+  pgrep "$pname" | while read p; do
+    WIN_ID=$(echo "$ACTIVE_WINDOWS" | fgrep " $p " | cut -d ' ' -f 1)
+    if [[ "$WIN_ID" == '' ]]; then continue; fi
+
+    echo "    $pname [$p, $WIN_ID]"
+    wmctrl -i -r "$WIN_ID" -e "$pos"
+  done
+}
+
+# TODO: Filter out large windows etc. and/or windows on other workspaces
+arrange_process kitty "$POS_1"
+arrange_process gvim "$POS_2"
+arrange_process firefox "$POS_3"
+arrange_process slack "$POS_4"
