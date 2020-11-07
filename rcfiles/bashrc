@@ -90,7 +90,7 @@ alias node='docker run --rm -it node:latest'
 alias 8='ack --ignore-dir=test --scala'
 alias logack='ack --noenv --type-add=log:ext:log --log'
 alias amm='amm --banner "Ammonite started." --no-remote-logging'
-alias mp='mplayer -xy 1200 -geometry 50%:50%'
+alias mp='mplayer -geometry 0%:100%'
 
 # Vim modes
 alias vim-ocean='vim -c "color oceandeep"'
