@@ -81,14 +81,19 @@ dcr() {
   docker-compose stop "$SERVICE" && docker-compose rm -f "$SERVICE" && docker-compose up -d "$SERVICE"
 }
 
+node() {
+  docker run --rm -it node:latest
+}
+
+npm() {
+  docker run --rm --entrypoint npm -v "$(pwd):/usr/src" -w /usr/src -it node:latest "$@"
+}
+
 alias vsplit='_in_tmux split -h'
 alias hsplit='_in_tmux split -v'
 
 alias qf="$HOME/scripts/quickfind"
 alias centos='docker run --rm -it -w /mnt -v $(pwd):/mnt centos:latest /bin/bash'
-alias node='docker run --rm -it node:latest'
-alias 8='ack --ignore-dir=test --scala'
-alias logack='ack --noenv --type-add=log:ext:log --log'
 alias amm='amm --banner "Ammonite started." --no-remote-logging'
 alias mp='mplayer -geometry 0%:100%'
 
