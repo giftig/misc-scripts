@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import calendar
 import datetime
@@ -28,7 +28,7 @@ class NotificationPusher(object):
 
         status = resp.status_code
         if status < 200 or status > 299:
-            print 'FAILURE: ', status, resp.json()
+            print('FAILURE: ', status, resp.json())
             return False
 
         return True

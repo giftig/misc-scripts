@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 """
 Hacky script to extract data from some JSON:
 
@@ -26,9 +26,9 @@ if __name__ == '__main__':
     assert len(sys.argv) > 1
 
     if sys.argv[1] == '--help':
-        print __doc__
+        print(__doc__)
         sys.exit(0)
 
     with open('/dev/stdin', 'rb') as f:
         data = json.load(f)
-        exec 'print pretty(%s)' % sys.argv[1]
+        exec('print(pretty({}))'.format(sys.argv[1]))

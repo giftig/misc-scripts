@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import re
 import sys
@@ -113,15 +113,15 @@ class StringValidator(object):
 
         if seems_interpolated and not details['interpolated']:
             return (
-                'Possible missing s or f on string "%(content)s", '
-                'line %(line_num)d'
-            ) % details
+                'Possible missing s or f on string "{content}", '
+                'line {line_num}'
+            ).format(details)
 
         if not seems_interpolated and details['interpolated']:
             return (
-                'Possible unneeded %(interpolated)s on string '
-                '%(interpolated)s"%(content)s", line %(line_num)d'
-            ) % details
+                'Possible unneeded {interpolated} on string '
+                '{interpolated}"{content}", line {line_num}'
+            ).format(details)
 
         return None
 
@@ -133,10 +133,10 @@ class StringValidator(object):
             error = self.validate_string(s)
             if error:
                 n += 1
-                print error
+                print(error)
 
         if n:
-            print '%d string interpolation issues found' % n
+            print('{} string interpolation issues found'.format(n))
         return n
 
 
