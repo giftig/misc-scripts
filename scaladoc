@@ -27,7 +27,7 @@ _open() {
 }
 
 _urlencode() {
-  python -c "from urllib import quote_plus;print quote_plus('''$1''')"
+  python -c "from urllib.parse import quote_plus;print(quote_plus('''$1'''))"
 }
 
 DOCROOT=''
