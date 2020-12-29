@@ -37,7 +37,7 @@ SEARCH_TERM=$(_urlencode "$2")
 SUPPORTS_SEARCH=1
 
 case "$1" in
-  scala|scala-lang|'')
+  scala|scala-lang|stdlib|std|'')
     DOCROOT='https://www.scala-lang.org/api'
     ;;
   akka|akka-actor)

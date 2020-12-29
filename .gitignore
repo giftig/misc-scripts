@@ -10,3 +10,5 @@
 */ammonite/history
 
 .go
+
+*.jar

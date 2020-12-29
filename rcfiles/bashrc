@@ -14,6 +14,10 @@ export HISTSIZE=100000
 export HISTFILESIZE=
 PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 
+# This suppresses spurious warnings from gtk applications about failure to register
+# with an accessibility bus
+export NO_AT_BRIDGE=1
+
 # Docker stuff
 export DOCKER_URL='unix:///var/run/docker.sock'
 
