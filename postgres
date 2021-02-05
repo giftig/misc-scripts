@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Launch a quick postgres container for testing purposes
+# Later versions of the image have become slightly less trivial to just run
+# on the fly so this assembles all the needed parameters for a bog-standard container
+
+TAG=${1:-latest}
+CONTAINER_NAME='postgres-onthefly'
+
+if [[ $(docker ps -q -f "Name=$CONTAINER_NAME" | wc -l) == '0' ]]; then
+  docker run \
+    --rm \
+    --name postgres-onthefly \
+    -d \
+    -p 5432:5432 \
+    -e POSTGRES_PASSWORD=postgres \
+    postgres:$TAG > /dev/null || exit $?
+
+  echo 'Postgres running.'
+else
+  echo 'Postgres already running.'
+fi
+
+echo ''
+echo 'To psql in:'
+echo '    psql --host localhost -U postgres -W'
+echo ''
+echo 'Using password = "postgres"'
