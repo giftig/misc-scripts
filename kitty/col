@@ -6,7 +6,25 @@ PURPLE='#400040'
 ORANGE='#804000'
 GREY='#404040'
 
-SESSION_FILE="${KITTY_SESSION_FILE:-$HOME/.kitty/default.session}"
+DAY=$(date '+%a')
+HOUR=$(date '+%H')
+
+_select_session_file() {
+  if [[ "$KITTY_SESSION_FILE" != '' ]]; then
+    echo "$KITTY_SESSION_FILE"
+    return 0
+  fi
+
+  if [[ "$DAY" == 'Sat' || "$DAY" == 'Sun' || $(expr "$HOUR" '>=' 17) == 1 ]]; then
+    echo "$HOME/.kitty/weekend.session"
+    return 0
+  fi
+
+  echo "$HOME/.kitty/default.session"
+}
+
+SESSION_FILE=$(_select_session_file)
+
 
 case "$1" in
   red)
