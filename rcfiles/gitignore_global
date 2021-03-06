@@ -9,3 +9,6 @@
 .docked-sbt
 .metals
 .bloop
+/.ivy2
+/.sbt
+/.coursier
