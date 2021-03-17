@@ -3,6 +3,7 @@
 SEARCH_TERM=''
 
 FORMAT='default'
+OVERRIDE_FORMAT=0
 PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2]'
 CACHE_FILE="/tmp/find-ec2-results-${AWS_ACCESS_KEY_ID:-default}-$(date +'%Y-%m-%d').json"
 USE_CACHE=1
@@ -23,7 +24,7 @@ usage() {
 
 describe_instances() {
   if [[ "$USE_CACHE" == 0 || ! -f "$CACHE_FILE" ]]; then
-    aws ec2 describe-instances --filters "Name=tag:Name,Values=*" > "$CACHE_FILE"
+    aws ec2 describe-instances > "$CACHE_FILE"
   fi
 
   cat "$CACHE_FILE"
@@ -70,17 +71,22 @@ done
 # Predefined formats for ease of use
 case $FORMAT in
   default)
-    FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .PrivateIpAddress, .InstanceId]) | .[]'
+    IP_OPTIONS='.PrivateIpAddress'
     ;;
   pub|public|pubip|public_ip)
-    FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .PublicIpAddress, .InstanceId]) | .[]'
+    IP_OPTIONS='.PublicIpAddress'
     ;;
   allips)
-    FORMAT='.Reservations | map(.Instances) | .[] | map([(.Tags[] | select(.Key == "Name") | .Value), .PrivateIpAddress, .PublicIpAddress, .InstanceId]) | .[]'
+    IP_OPTIONS='.PublicIpAddress, .PrivateIpAddress'
     ;;
   *)
+    OVERRIDE_FORMAT=1
     ;;
 esac
+
+if [[ "$OVERRIDE_FORMAT" == 0 ]]; then
+  FORMAT='.Reservations | map(.Instances) | .[] | map([((.Tags // [])[] | select(.Key == "Name") | .Value) // "(no name)", '"$IP_OPTIONS"', .InstanceId]) | .[]'
+fi
 
 describe_instances |
   jq -r "$FORMAT $PRESENTATION" |
