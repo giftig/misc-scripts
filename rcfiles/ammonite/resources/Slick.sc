@@ -1,4 +1,4 @@
-import $ivy.`com.typesafe.slick::slick:3.2.0`
+import $ivy.`com.typesafe.slick::slick:3.3.3`
 import $ivy.`org.postgresql:postgresql:42.2.5`
 
 import slick.driver.PostgresDriver

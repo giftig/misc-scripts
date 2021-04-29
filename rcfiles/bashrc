@@ -98,7 +98,7 @@ alias hsplit='_in_tmux split -v'
 
 alias qf="$HOME/scripts/quickfind"
 alias centos='docker run --rm -it -w /mnt -v $(pwd):/mnt centos:latest /bin/bash'
-alias amm='amm --banner "Ammonite started." --no-remote-logging'
+alias amm='amm --no-remote-logging'
 alias mp='mplayer -geometry 0%:100%'
 
 # Vim modes

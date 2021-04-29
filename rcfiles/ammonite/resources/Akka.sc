@@ -1,12 +1,11 @@
-import $ivy.`com.typesafe.akka::akka-actor:2.5.23`
-import $ivy.`com.typesafe.akka::akka-slf4j:2.5.23`
-import $ivy.`com.typesafe.akka::akka-stream:2.5.23`
-import $ivy.`com.lightbend.akka::akka-stream-alpakka-dynamodb:1.1.1`
-import $ivy.`com.typesafe.akka::akka-http:10.1.8`
-import $ivy.`com.typesafe.akka::akka-http-spray-json:10.1.8`
-import $ivy.`com.typesafe.akka::akka-testkit:2.5.23`
-import $ivy.`com.typesafe.akka::akka-stream-testkit:2.5.23`
-import $ivy.`com.typesafe.akka::akka-http-testkit:10.1.8`
+import $ivy.`com.typesafe.akka::akka-actor:2.6.9`
+import $ivy.`com.typesafe.akka::akka-slf4j:2.6.9`
+import $ivy.`com.typesafe.akka::akka-stream:2.6.9`
+import $ivy.`com.typesafe.akka::akka-http:10.2.0`
+import $ivy.`com.typesafe.akka::akka-http-spray-json:10.2.0`
+import $ivy.`com.typesafe.akka::akka-testkit:2.6.9`
+import $ivy.`com.typesafe.akka::akka-stream-testkit:2.6.9`
+import $ivy.`com.typesafe.akka::akka-http-testkit:10.2.0`
 import akka.actor._
 import akka.pattern.ask
 import akka.stream._
@@ -25,7 +24,6 @@ val defaultAkkaConfig: Config = ConfigFactory.parseString(
   """
 )
 implicit val system: ActorSystem = ActorSystem("amm", defaultAkkaConfig)
-implicit val mat: Materializer = ActorMaterializer()
 
 object Akka {
   import scala.concurrent.ExecutionContext
