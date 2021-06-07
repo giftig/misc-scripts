@@ -5,6 +5,7 @@ import $exec.resources.Akka, Akka._
 import $exec.resources.Aws
 import $exec.resources.Elasticsearch, Elasticsearch._
 import $exec.resources.Json
+import $exec.resources.Kamon
 import $exec.resources.Mongo
 import $exec.resources.Scalike
 import $exec.resources.Testing
@@ -19,6 +20,7 @@ import scala.concurrent.duration._
 
 import ammonite.ops._
 import com.typesafe.config.ConfigFactory
+import kamon.Kamon
 
 import ExecutionContext.Implicits.global
 

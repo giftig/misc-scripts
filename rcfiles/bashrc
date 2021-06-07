@@ -27,7 +27,7 @@ PATH="$PATH:/usr/local/go/bin:/usr/local/heroku/bin:$HOME/.pokemon-terminal"
 export PATH="$PATH:/opt/coursier/bin:$HOME/.local/share/coursier/bin"
 
 # Tell fzf to use ag so that it ignores .gitignore stuff
-export FZF_DEFAULT_COMMAND='ag -l ""'
+export FZF_DEFAULT_COMMAND='ag -g ""'
 
 # Always use gvim
 alias vim=gvim
