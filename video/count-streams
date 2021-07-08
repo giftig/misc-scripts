@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ffprobe "$1" -v error -show_entries stream=codec_type -of default=nw=1:nk=1 |
+  sort |
+  uniq -c

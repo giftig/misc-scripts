@@ -5,9 +5,15 @@ if [ -f /etc/bashrc ]; then
   . /etc/bashrc
 fi
 
+# Python
 export WORKON_HOME=~/.virtualenvs
 export PIP_VIRTUALENV_BASE=$WORKON_HOME
 export PIP_RESPECT_VIRTUALENV=true
+
+# JS / node
+export NPM_PACKAGES="$HOME/.npm-packages"
+export NODE_PATH="$NPM_PACKAGES/lib/node_modules:$NODE_PATH"
+export PATH="$PATH:$NPM_PACKAGES/bin"
 
 # Elephant mode
 export HISTSIZE=100000
@@ -85,14 +91,6 @@ dcr() {
   docker-compose stop "$SERVICE" && docker-compose rm -f "$SERVICE" && docker-compose up -d "$SERVICE"
 }
 
-node() {
-  docker run --rm -it node:latest
-}
-
-npm() {
-  docker run --rm --entrypoint npm -v "$(pwd):/usr/src" -w /usr/src -it node:latest "$@"
-}
-
 alias vsplit='_in_tmux split -h'
 alias hsplit='_in_tmux split -v'
 
@@ -124,7 +122,8 @@ unalias grep &> /dev/null
 alias grep='grep --color=auto'
 alias notes='vim -c RecentNotes'
 
-alias ffmpeg='docker run -it --rm -v "$(pwd):/usr/src" --entrypoint /bin/bash -w /usr/src giftig/ffmpeg'
+alias ffmpeg="$HOME/scripts/video/ffmpeg"
+alias ffmpeg="$HOME/scripts/video/ffprobe"
 
 # Ensure symlinked dirs expand with trailing slash in autocomplete
 bind 'set mark-symlinked-directories on'

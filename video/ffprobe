@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Naive wrapper for ffmpeg docker container assuming we want to mount the
+# pwd on /usr/src and operate from there using ffprobe
+
+
+docker run -it --rm -v "$(pwd):/usr/src" --entrypoint ffprobe -w /usr/src giftig/ffmpeg "$@"
