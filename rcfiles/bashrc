@@ -122,8 +122,11 @@ unalias grep &> /dev/null
 alias grep='grep --color=auto'
 alias notes='vim -c RecentNotes'
 
-alias ffmpeg="$HOME/scripts/video/ffmpeg"
-alias ffprobe="$HOME/scripts/video/ffprobe"
+# Alias these to the docker scripts only if it's not installed
+if ! which ffmpeg &> /dev/null; then
+  alias ffmpeg="$HOME/scripts/video/ffmpeg"
+  alias ffprobe="$HOME/scripts/video/ffprobe"
+fi
 
 # Ensure symlinked dirs expand with trailing slash in autocomplete
 bind 'set mark-symlinked-directories on'
