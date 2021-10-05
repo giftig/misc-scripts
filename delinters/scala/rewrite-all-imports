@@ -7,4 +7,4 @@ fi
 
 REWRITE="$(dirname "$0")/rewrite-imports.py"
 
-find "$1" -iname '*.scala' | xargs $REWRITE
+find "$1" -iname '*.scala' | grep -v 'src_managed' | xargs $REWRITE

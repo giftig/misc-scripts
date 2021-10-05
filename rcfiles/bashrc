@@ -123,7 +123,7 @@ alias grep='grep --color=auto'
 alias notes='vim -c RecentNotes'
 
 alias ffmpeg="$HOME/scripts/video/ffmpeg"
-alias ffmpeg="$HOME/scripts/video/ffprobe"
+alias ffprobe="$HOME/scripts/video/ffprobe"
 
 # Ensure symlinked dirs expand with trailing slash in autocomplete
 bind 'set mark-symlinked-directories on'
