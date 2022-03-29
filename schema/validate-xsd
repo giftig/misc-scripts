@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+import sys
+
+import xmlschema
+
+
+def main():
+    xmlschema.validate(sys.argv[1], sys.argv[2])
+
+
+if __name__ == '__main__':
+    main()
