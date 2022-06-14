@@ -1,0 +1,9 @@
+#!/bin/bash
+
+FONT_SIZE="$1"
+
+if [ -z "$FONT_SIZE" ]; then
+  FONT_SIZE=12
+fi
+
+nohup kitty -o='background=#404040' -o="font_size=$FONT_SIZE" &> /dev/null

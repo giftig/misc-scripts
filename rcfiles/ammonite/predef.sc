@@ -3,7 +3,7 @@ import $exec.resources.Logging
 
 import $exec.resources.Akka, Akka._
 import $exec.resources.Aws
-import $exec.resources.Cats
+//import $exec.resources.Cats
 import $exec.resources.Elasticsearch, Elasticsearch._
 import $exec.resources.Json
 import $exec.resources.Kamon
