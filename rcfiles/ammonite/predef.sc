@@ -12,6 +12,7 @@ import $exec.resources.Scalike
 import $exec.resources.Testing
 import $exec.resources.Time
 import $exec.resources.TypesafeConfig
+import $exec.resources.Zio
 
 import $exec.resources.Slick, Slick._
 
