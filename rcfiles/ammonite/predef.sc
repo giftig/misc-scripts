@@ -3,7 +3,6 @@ import $exec.resources.Logging
 
 import $exec.resources.Akka, Akka._
 import $exec.resources.Aws
-//import $exec.resources.Cats
 import $exec.resources.Elasticsearch, Elasticsearch._
 import $exec.resources.Json
 import $exec.resources.Kamon
@@ -12,7 +11,6 @@ import $exec.resources.Scalike
 import $exec.resources.Testing
 import $exec.resources.Time
 import $exec.resources.TypesafeConfig
-import $exec.resources.Zio
 
 import $exec.resources.Slick, Slick._
 

@@ -91,6 +91,17 @@ dcr() {
   docker-compose stop "$SERVICE" && docker-compose rm -f "$SERVICE" && docker-compose up -d "$SERVICE"
 }
 
+# Amm options to work with different libraries
+amm() {
+  amm --no-remote-logging "$@"
+}
+amm-cats() {
+  amm -p "$HOME/.ammonite/predef_cats.sc" "$@"
+}
+amm-zio() {
+  amm -p "$HOME/.ammonite/predef_zio.sc" "$@"
+}
+
 alias vsplit='_in_tmux split -h'
 alias hsplit='_in_tmux split -v'
 
