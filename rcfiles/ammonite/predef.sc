@@ -16,6 +16,8 @@ import $exec.resources.Zio
 
 import $exec.resources.Slick, Slick._
 
+import $exec.resources.LocalJars
+
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
