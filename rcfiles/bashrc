@@ -93,7 +93,7 @@ dcr() {
 
 # Amm options to work with different libraries
 amm() {
-  amm --no-remote-logging "$@"
+  /opt/ammonite/bin/amm --no-remote-logging "$@"
 }
 amm-cats() {
   amm -p "$HOME/.ammonite/predef_cats.sc" "$@"
@@ -107,7 +107,6 @@ alias hsplit='_in_tmux split -v'
 
 alias qf="$HOME/scripts/quickfind"
 alias centos='docker run --rm -it -w /mnt -v $(pwd):/mnt centos:latest /bin/bash'
-alias amm='amm --no-remote-logging'
 alias mp='mplayer -geometry 0%:100%'
 
 # Vim modes
