@@ -94,13 +94,16 @@ dcr() {
 
 # Amm options to work with different libraries
 amm() {
-  /opt/ammonite/bin/amm --no-remote-logging "$@"
+  /opt/ammonite/bin/amm "$@"
 }
 amm-cats() {
   amm -p "$HOME/.ammonite/predef_cats.sc" "$@"
 }
 amm-zio() {
   amm -p "$HOME/.ammonite/predef_zio.sc" "$@"
+}
+amm-spark() {
+  amm -p "$HOME/.ammonite/predef_spark.sc" --class-based "$@"
 }
 
 alias vsplit='_in_tmux split -h'

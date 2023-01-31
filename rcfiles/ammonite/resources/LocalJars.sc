@@ -2,21 +2,23 @@
 
 object LocalJarImporter {
   import java.io.File
+  import java.net.URL
   import scala.annotation.tailrec
-
-  import ammonite.ops.Path
+  import scala.math.Ordering
 
   /**
    * List files directly under f safely, dealing with the potential null from .listFiles
    */
   private def listFiles(f: File): Seq[File] = Option(f.listFiles).toSeq.flatten
 
+  implicit val ordering: Ordering[URL] = Ordering.by(_.toString)
+
   /**
    * Print the provided message in yellow with ANSI colouring
    */
   private def notice(s: String): Unit = println(s"\u001b[33m$s\u001b[0m")
 
-  lazy val targetJars: Seq[Path] = {
+  lazy val targetJars: Seq[URL] = {
     val target = new File("./target")
 
     if (target.isDirectory) {
@@ -24,7 +26,7 @@ object LocalJarImporter {
         .filter { f => f.isDirectory && f.getName.startsWith("scala-") }
         .flatMap(listFiles)
         .collect {
-          case f if f.isFile && f.getName.endsWith(".jar") => Path(f.getCanonicalFile.toString)
+          case f if f.isFile && f.getName.endsWith(".jar") => f.getCanonicalFile.toURI.toURL
         }
     } else Nil
   }

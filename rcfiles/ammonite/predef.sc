@@ -2,7 +2,6 @@
 import $exec.resources.Logging
 
 import $exec.resources.Akka, Akka._
-import $exec.resources.Aws
 import $exec.resources.Elasticsearch, Elasticsearch._
 import $exec.resources.Json
 import $exec.resources.Kamon
@@ -15,12 +14,10 @@ import $exec.resources.TypesafeConfig
 import $exec.resources.Slick, Slick._
 
 import $exec.resources.LocalJars
-
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
-import ammonite.ops._
 import com.typesafe.config.ConfigFactory
 import kamon.Kamon
 
