@@ -172,6 +172,7 @@ jira() {
 }
 
 eval "$(jenv init -)"
+complete -C /usr/bin/terraform terraform
 
 # Import other useful files
 {
