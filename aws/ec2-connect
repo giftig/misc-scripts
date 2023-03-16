@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Uses find-ec2 to create a list of known hosts, optionallty filtered,
+# Uses find-ec2 to create a list of known hosts, optionally filtered,
 # and then use fzf to provide a nice interface for selecting the one we
 # want to connect to and setting your remote PS1 to a nice coloured
 # representation of which host you're on.
@@ -8,7 +8,7 @@
 # Some things are very specific to where I keep my keys, what my instance
 # naming convention is like, etc., so if you want to use this in different
 # contexts I've tried to segregate them so that you can provide your own
-# implementations (including noop implementations by defining the following
+# implementations (including noop implementations) by defining the following
 # scriptlets:
 # - ~/.ec2-connect/remote-ps1.sh
 
