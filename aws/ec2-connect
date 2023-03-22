@@ -22,6 +22,7 @@ RESET=$(tput sgr0)
 CACHE_ARG=''
 FILTER_TERM=''
 TASK='_conn'
+OVERRIDE_HOST=''
 
 SSH_USER=${EC2_CONNECT_DEFAULT_USER:-ec2-user}
 KEY="${EC2_CONNECT_DEFAULT_KEY:-$HOME/.ssh/id_rsa}"
@@ -30,17 +31,20 @@ FIND_FORMAT=default
 REMOTE_PS1_SCRIPT="$HOME/.ec2-connect/remote-ps1.sh"
 
 usage() {
-  echo 'Usage: ec2-connect [-C] [FILTER]'
-  echo '       ec2-connect --scp [-C] [FILTER]'
+  echo 'Usage: ec2-connect [OPTION]... [FILTER]'
+  echo '       ec2-connect [OPTION]... --scp [FILTER]'
   echo ''
   echo 'Options:'
   echo ''
-  echo '-C        Tell the underlying find-ec2 script to skip the cache'
-  echo '--key     Use the specified SSH key.'
-  echo '--user    Use the specified user.'
-  echo '--scp     Instead of connecting to the host, print an scp command'
-  echo '          which can easily be used to copy files to/from the host'
-  echo '--public  Find public IPs to connect to rather than private ones'
+  echo '-C           Tell the underlying find-ec2 script to skip the cache'
+  echo '--key KEY    Use the specified SSH key.'
+  echo '--ip IPADDR,'
+  echo '--host HOST  Do not look up IPs, just connect to the given IP or'
+  echo '             hostname instead'
+  echo '--public     Find public IPs to connect to rather than private ones'
+  echo '--scp        Instead of connecting to the host, print an scp command'
+  echo '             which can easily be used to copy files to/from the host'
+  echo '--user USER  Use the specified user.'
   echo ''
   echo 'FILTER    Filter instances by this term before presenting choices.'
   echo '          If there is exactly one match for the term it will be '
@@ -91,6 +95,11 @@ while [[ "$#" != 0 ]]; do
       shift
       FIND_FORMAT=pubip
       ;;
+    --ip|--host)
+      shift
+      OVERRIDE_HOST="$1"
+      shift
+      ;;
     --help)
       usage
       exit 0
@@ -118,19 +127,24 @@ if ! which fzf &> /dev/null; then
   exit 1
 fi
 
-ENTRY=$(
-  ./find-ec2 "$CACHE_ARG" -p '| .[0] + " " + .[1] + " " + .[2]' -f "$FIND_FORMAT" "$FILTER_TERM" 2> /dev/null |
-    grep -E "$IP_PATTERN" |
-    fzf --ansi -i -0 -1 +m --prompt='Select host: ' |
-    tr -s ' '
-)
+if [[ "$OVERRIDE_HOST" != '' ]]; then
+  INSTANCE_NAME="host:$OVERRIDE_HOST"
+  IP="$OVERRIDE_HOST"
+else
+  ENTRY=$(
+    ./find-ec2 "$CACHE_ARG" -p '| .[0] + " " + .[1] + " " + .[2]' -f "$FIND_FORMAT" "$FILTER_TERM" 2> /dev/null |
+      grep -E "$IP_PATTERN" |
+      fzf --ansi -i -0 -1 +m --prompt='Select host: ' |
+      tr -s ' '
+  )
 
-if [[ "$ENTRY" == '' ]]; then
-  echo 'No results' >&2
-  exit 1
+  if [[ "$ENTRY" == '' ]]; then
+    echo 'No results' >&2
+    exit 1
+  fi
+
+  INSTANCE_NAME=$(echo "$ENTRY" | cut -d ' ' -f 1)
+  IP=$(echo "$ENTRY" | cut -d ' ' -f 2)
 fi
-
-INSTANCE_NAME=$(echo "$ENTRY" | cut -d ' ' -f 1)
-IP=$(echo "$ENTRY" | cut -d ' ' -f 2)
 
 $TASK
