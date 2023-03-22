@@ -28,6 +28,34 @@ SSH_USER=${EC2_CONNECT_DEFAULT_USER:-ec2-user}
 KEY="${EC2_CONNECT_DEFAULT_KEY:-$HOME/.ssh/id_rsa}"
 FIND_FORMAT=default
 
+# This slightly unwieldy jq format specifically selects alternate IP addresses, i.e.
+# addresses listed under NetworkInterfaces and which don't match the instance's
+# private IP address. We'll only show instances which have such interfaces, and
+# we'll list each instance potentially multiple times, once for each such interface
+ALTERNATE_IPS_FORMAT='
+  .Reservations |
+    map(.Instances) |
+    .[] |
+    map(
+      .InstanceId as $instanceId |
+      (
+        (
+          (.Tags // [])[] |
+            select(.Key == "Name") |
+            .Value
+        ) // "(no name)"
+      ) as $instanceName |
+      .PrivateIpAddress as $instanceIp |
+      .NetworkInterfaces |
+        map(
+          select(.PrivateIpAddress != $instanceIp) |
+          [$instanceName, .PrivateIpAddress, $instanceId]
+        ) |
+        .[]
+    ) |
+    .[]
+'
+
 REMOTE_PS1_SCRIPT="$HOME/.ec2-connect/remote-ps1.sh"
 
 usage() {
@@ -42,6 +70,8 @@ usage() {
   echo '--host HOST  Do not look up IPs, just connect to the given IP or'
   echo '             hostname instead'
   echo '--public     Find public IPs to connect to rather than private ones'
+  echo '--alt        Find alternate IPs of instances only. Lists each'
+  echo '             non-default IP of an instance as a separate entry'
   echo '--scp        Instead of connecting to the host, print an scp command'
   echo '             which can easily be used to copy files to/from the host'
   echo '--user USER  Use the specified user.'
@@ -94,6 +124,10 @@ while [[ "$#" != 0 ]]; do
     -p|--pub|--public)
       shift
       FIND_FORMAT=pubip
+      ;;
+    -a|--alt)
+      shift
+      FIND_FORMAT="$ALTERNATE_IPS_FORMAT"
       ;;
     --ip|--host)
       shift
