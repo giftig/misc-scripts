@@ -105,23 +105,24 @@ def rewrite_file(ff):
     )
 
     patched = []
+    finished_patching = False
     found_body = False
 
     # Strip blank lines until we encounter a non-blank line which
     # doesn't start with 'package', and then insert our reformatted imports
     # into this space
     for l in imports_stripped:
-        if found_body or l.startswith('package'):
-            patched.append(l)
+        if not found_body and not l.strip():
             continue
 
-        if not l.strip():
-            continue
-
-        patched.extend(all_imports)
-        found_body = True
+        if finished_patching and l.strip():
+            found_body = True
 
         patched.append(l)
+
+        if l.startswith('package') and not finished_patching:
+            patched.extend(all_imports)
+            finished_patching = True
 
     with open(ff, 'w') as f:
         f.writelines(patched)
