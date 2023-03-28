@@ -16,3 +16,7 @@ if [[ "$volumes" != '' ]]; then
   docker volume rm $volumes || exit 3
 fi
 
+networks=$(docker network ls -qf dangling=true)
+if [[ "$networks" != '' ]]; then
+  docker network rm $networks || exit 3
+fi
