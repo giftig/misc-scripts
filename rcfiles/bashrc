@@ -110,7 +110,7 @@ alias vsplit='_in_tmux split -h'
 alias hsplit='_in_tmux split -v'
 
 alias qf="$HOME/scripts/quickfind"
-alias centos='docker run --rm -it -w /mnt -v $(pwd):/mnt centos:latest /bin/bash'
+alias ubuntu='docker run --rm -it -w /mnt -v $(pwd):/mnt ubuntu:latest /bin/bash'
 alias mp='mplayer -geometry 0%:100%'
 
 # Vim modes
