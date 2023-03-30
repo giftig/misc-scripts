@@ -2,4 +2,14 @@
 
 # Find active emr clusters
 
-aws emr list-clusters --active | jq -r '.Clusters | map([.Name, .Id]) | .[] | .[0] + "\t\t" + .[1]' | grep -v EmrClusterObj | sort
+_format_line() {
+  local name=$(echo "$1" | cut -d ' ' -f 1)
+  local cluster_id=$(echo "$1" | cut -d ' ' -f 2)
+
+  printf '%-40s %s\n' "$name" "$cluster_id"
+}
+
+aws emr list-clusters --active |
+  jq -r '.Clusters | map([.Name, .Id]) | .[] | .[0] + " " + .[1]' |
+  while read l; do _format_line "$l"; done |
+  sort
