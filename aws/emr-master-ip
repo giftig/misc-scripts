@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Find instance IDs of EMR master and slave nodes
+# WIP ---
+
+cd "$(dirname "$0")"
+
+CLUSTER_ID="$1"
+
+if [[ "$CLUSTER_ID" == '' ]]; then
+  if ! which fzf &> /dev/null; then
+    echo 'Please install fzf or provide a cluster ID to use this script' >&2
+    exit 1
+  fi
+
+  CLUSTER_ID=$(
+    ./emr-active |
+      fzf -i -0 -1 +m --prompt='Select cluster: ' |
+      tr -s ' ' |
+      cut -d ' ' -f 2
+  )
+fi
+
+
+if [[ "$CLUSTER_ID" == '' ]]; then
+  echo 'No cluster ID provided' >&2
+  exit 1
+fi
+
+PRIMARY_DNS=$(aws emr describe-cluster --cluster-id "$CLUSTER_ID" | jq -r '.Cluster.MasterPublicDnsName')
+
+aws emr list-instances --cluster-id "$CLUSTER_ID" |
+  jq -r '.Instances[] | select(.PrivateDnsName == "'"$PRIMARY_DNS"'") | .PrivateIpAddress'
