@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Find network gateway by network name
+
+docker network ls -qf name="$1" |
+  xargs docker network inspect |
+  jq -r '.[0].IPAM.Config[0].Gateway'
