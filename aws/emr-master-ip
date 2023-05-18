@@ -5,7 +5,50 @@
 
 cd "$(dirname "$0")"
 
-CLUSTER_ID="$1"
+CLUSTER_ID=""
+RESULT_FILTER=""
+
+usage() {
+  echo 'Usage: emr-master-ip --id CLUSTER_ID'
+  echo '       emr-master-ip [-f|--filter FILTER]'
+  echo ''
+  echo 'Find the master IP of a specified EMR cluster. Specify either an exact'
+  echo 'cluster ID, or one will be selected using fzf. If a FILTER is provided'
+  echo 'clusters names/IDs will be filtered using the provided substring prior'
+  echo 'to listing them for fzf, and if exactly one match the filter term it'
+  echo 'will be selected automatically'
+  echo ''
+  echo 'Options'
+  echo '-i, --id       Cluster ID to use'
+  echo '-f, --filter   Provide a filter on cluster results'
+}
+
+while [[ "$#" != 0 ]]; do
+  case "$1" in
+    -i|--id)
+      shift
+      CLUSTER_ID="$1"
+      shift
+      ;;
+    -f|--filter)
+      shift
+      if [[ "$CLUSTER_ID" != '' ]]; then
+        echo 'Filter and cluster ID cannot be provided together' >&2
+        exit 1
+      fi
+      RESULT_FILTER="$1"
+      shift
+      ;;
+    --help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
 
 if [[ "$CLUSTER_ID" == '' ]]; then
   if ! which fzf &> /dev/null; then
@@ -15,6 +58,7 @@ if [[ "$CLUSTER_ID" == '' ]]; then
 
   CLUSTER_ID=$(
     ./emr-active |
+      fgrep "$RESULT_FILTER" |
       fzf -i -0 -1 +m --prompt='Select cluster: ' |
       tr -s ' ' |
       cut -d ' ' -f 2
@@ -23,8 +67,8 @@ fi
 
 
 if [[ "$CLUSTER_ID" == '' ]]; then
-  echo 'No cluster ID provided' >&2
-  exit 1
+  echo 'No results' >&2
+  exit 2
 fi
 
 PRIMARY_DNS=$(aws emr describe-cluster --cluster-id "$CLUSTER_ID" | jq -r '.Cluster.MasterPublicDnsName')
