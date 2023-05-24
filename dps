@@ -34,20 +34,13 @@ class DPSRow(object):
         self.image_tag = image_comps[1] if len(image_comps) > 1 else 'latest'
 
     @staticmethod
-    def _colourise_status(status):
-        if 'Exited' in status:
-            status = 'Exited'
-
-        if 'Up' not in status:
-            return _colourise(status, RED)
-
-        col = YELLOW if 'second' in status or 'minute' in status else GREEN
-
-        # Simplify / shorten the status a bit for easier display
+    def _abbreviate_timings(status):
+        """Shorten timings where possible for easier display"""
         status = status.replace('Less than an', '<')
         status = status.replace('Less than a', '<')
         status = status.replace('About an', '~1')
         status = status.replace('About a', '~1')
+        status = status.replace(' ago', '')
 
         status = re.sub('([a-zA-Z]+)s', r'\1', status)
         status = status.replace(' second', 's')
@@ -58,6 +51,24 @@ class DPSRow(object):
         status = status.replace(' month', 'mo')
         status = status.replace(' year', 'y')
 
+        return status
+
+    @staticmethod
+    def _colourise_status(status):
+        if 'Exited' in status:
+            status = 'Exited'
+
+        if 'Restarting' in status:
+            timing = DPSRow._abbreviate_timings(
+                re.sub('Restarting \(.+\) ', '', status)
+            )
+            status = f'♻️ {timing}'
+
+        if 'Up' not in status:
+            return _colourise(status, RED)
+
+        col = YELLOW if 'second' in status or 'minute' in status else GREEN
+        status = DPSRow._abbreviate_timings(status)
 
         return _colourise(status, col)
 
@@ -83,7 +94,7 @@ class DPSRow(object):
         return '{}/{}'.format(repo, img)
 
     def __str__(self):
-        return '%-40s  %-16s  %-70s  %s' % (
+        return '%-50s  %-16s  %-70s  %s' % (
             _colourise(self.names, CYAN),
             self._colourise_status(self.status),
             '%s:%s' % (
