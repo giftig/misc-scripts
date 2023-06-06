@@ -68,6 +68,7 @@ class DPSRow(object):
             return _colourise(status, RED)
 
         col = YELLOW if 'second' in status or 'minute' in status else GREEN
+        status = status.replace(' (healthy)', '')
         status = DPSRow._abbreviate_timings(status)
 
         return _colourise(status, col)
