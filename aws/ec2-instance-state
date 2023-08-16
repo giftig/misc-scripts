@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Quickly find EC2 instance state by ID
+
+POLL=0
+INSTANCE_ID=''
+
+print_state() {
+  aws ec2 describe-instances --instance-ids "$1" |
+    jq -r '.Reservations[0].Instances[0].State'
+}
+
+usage() {
+  echo 'Usage: ec2-instance-state INSTANCE_ID [-p]'
+  echo ''
+  echo 'Options:'
+  echo ''
+  echo '-i, --instance-id   AWS instance ID to check state of'
+  echo '-p, --poll          Poll every 5s until stopped, instead of executing once'
+}
+
+while [[ "$#" != 0 ]]; do
+  case "$1" in
+    -p|--poll)
+      POLL=1
+      shift
+      ;;
+    -*)
+      echo "Unknown flag $1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      if [[ "$INSTANCE_ID" != '' ]]; then
+        usage >&2
+        exit 2
+      fi
+
+      INSTANCE_ID="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ "$INSTANCE_ID" == '' ]]; then
+  echo 'Instance ID is required' >&2
+  usage >&2
+  exit 3
+fi
+
+if [[ "$POLL" == 1 ]]; then
+  while true; do
+    print_state "$INSTANCE_ID"
+    sleep 5
+  done
+else
+  print_state "$INSTANCE_ID"
+fi
