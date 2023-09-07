@@ -6,7 +6,7 @@ RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 RESET=$(tput sgr0)
 
-CACHE_ARG='-C'
+CACHE_FLAG='-C'
 FILTER_TERM=''
 SKIP_PROMPT=0
 USE_STOP=0
@@ -27,7 +27,7 @@ usage() {
 while [[ "$#" != 0 ]]; do
   case "$1" in
     -c|--cache)
-      CACHE_ARG=''
+      CACHE_FLAG=''
       shift
       ;;
     -f|--force)
@@ -63,11 +63,8 @@ if ! which fzf &> /dev/null; then
   exit 1
 fi
 
-FIND_FORMAT=allips
-FIND_PRESENTATION='| .[0] + " " + .[1] + "/" + .[2] + " " + .[3]'
-
 INSTANCES=$(
-  ./find-ec2 "$CACHE_ARG" -f "$FIND_FORMAT" -p "$FIND_PRESENTATION" "$FILTER_TERM" 2> /dev/null |
+  ./find-ec2 $CACHE_FLAG "$FILTER_TERM" 2> /dev/null |
     fzf --ansi -i -0 -1 -m --prompt='Select instances: ' |
     tr -s ' '
 )
@@ -105,5 +102,5 @@ echo "$YELLOW$VERB...$RESET"
 echo ''
 
 echo "$INSTANCES" | while read inst; do
-  echo $inst | rev | cut -d ' ' -f 1 | rev
+  echo $inst | tr -s ' ' | cut -d ' ' -f 3
 done | xargs aws ec2 "$SUBCMD" --instance-ids

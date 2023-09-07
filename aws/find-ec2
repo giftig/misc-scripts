@@ -1,94 +1,255 @@
-#!/bin/bash
+#!/usr/bin/python3
 
-SEARCH_TERM=''
+import argparse
+import datetime
+import json
+import math
+import os
+from typing import Optional
 
-FORMAT='default'
-OVERRIDE_FORMAT=0
-PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2]'
-CACHE_FILE="/tmp/find-ec2-results-${AWS_ACCESS_KEY_ID:-defaultaccesskey}-${AWS_PROFILE:-defaultprofile}-$(date +'%Y-%m-%d').json"
-USE_CACHE=1
+import boto3
 
-usage() {
-  echo 'Usage: find-ec2 [-f FORMAT] [-p PRESENTATION] [-C] [SEARCH_TERM]'
-  echo ''
-  echo 'Options:'
-  echo ''
-  echo 'FORMAT          How to format the resulting information using jq to reduce it to useful info'
-  echo 'PRESENTATION    How to write that collected information'
-  echo 'SEARCH_TERM     Search term matching partial instance names (Name tag)'
-  echo ''
-  echo '-C              Do not use cached results (results will be cached for the day otherwise)'
-  echo ''
-  echo 'The default is to write tsv with instance names, IPs, and IDs'
+# Internal enum for which IPs to present
+IP_PUBLIC = "public_ip"
+IP_PRIVATE = "private_ip"
+IP_ALT = "alternate_ip"
+
+# EC2 instance state codes
+STATE_PENDING = 0
+STATE_RUNNING = 16
+STATE_SHUTTING_DOWN = 32
+STATE_TERMINATED = 48
+STATE_STOPPING = 64
+STATE_STOPPED = 80
+
+# Icons to express state in few characters
+STATE_ICONS = {
+    STATE_PENDING: "⌛",
+    STATE_RUNNING: "✅",
+    STATE_STOPPING: "🚫⌛",
+    STATE_STOPPED: "🚫",
+    STATE_SHUTTING_DOWN: "💀⌛",
+    STATE_TERMINATED: "💀"
 }
 
-describe_instances() {
-  if [[ "$USE_CACHE" == 0 || ! -f "$CACHE_FILE" ]]; then
-    aws ec2 describe-instances > "$CACHE_FILE"
-  fi
 
-  cat "$CACHE_FILE"
-}
+def serialise_json(obj: any) -> str:
+    """Serialiser for non-serialisable types"""
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+
+    raise ValueError(f"Don't know how to serialise {obj}, type {type(obj)}")
 
 
-while [[ "$#" != 0 ]]; do
-  case "$1" in
-    -f|--format)
-      shift
-      FORMAT="$1"
-      shift
-      ;;
-    -p|--presentation)
-      shift
-      PRESENTATION="$1"
-      shift
-      ;;
-    -c|--cache)
-      shift
-      USE_CACHE=1
-      ;;
-    -C|--no-cache)
-      shift
-      USE_CACHE=0
-      ;;
-    -*)
-      echo "Unknown flag $1" >&2
-      usage >&2
-      exit 1
-      ;;
-    *)
-      if [[ "$SEARCH_TERM" != '' ]]; then
-        usage >&2
-        exit 2
-      fi
+class Ec2Instance:
+    def __init__(self, data):
+        self.data = data
 
-      SEARCH_TERM="$1"
-      shift
-      ;;
-  esac
-done
+        self.name = None
 
-# Predefined formats for ease of use
-case $FORMAT in
-  default)
-    IP_OPTIONS='.PrivateIpAddress'
-    ;;
-  pub|public|pubip|public_ip)
-    IP_OPTIONS='.PublicIpAddress'
-    ;;
-  allips)
-    IP_OPTIONS='.PublicIpAddress, .PrivateIpAddress'
-    ;;
-  *)
-    OVERRIDE_FORMAT=1
-    ;;
-esac
+        tags = data.get("Tags", [])
+        for t in tags:
+            if t["Key"] == "Name":
+                self.name = t["Value"]
 
-if [[ "$OVERRIDE_FORMAT" == 0 ]]; then
-  FORMAT='.Reservations | map(.Instances) | .[] | map([((.Tags // [])[] | select(.Key == "Name") | .Value) // "(no name)", '"$IP_OPTIONS"', .InstanceId]) | .[]'
-fi
+        self.instance_id = data["InstanceId"]
+        self.launch_time = datetime.datetime.fromisoformat(data["LaunchTime"])
+        self.state = data["State"]["Name"]
+        self.state_code = data["State"]["Code"]
+        self.private_ip = data.get("PrivateIpAddress")
+        self.public_ip = data.get("PublicIpAddress")
 
-describe_instances |
-  jq -r "$FORMAT $PRESENTATION" |
-  fgrep "$SEARCH_TERM" |
-  sort
+    @property
+    def alternate_ips(self):
+        ips = []
+
+        interfaces = self.data.get("NetworkInterfaces", [])
+        for interface in interfaces:
+            ip = interface.get("PrivateIpAddress")
+
+            if ip is not None and ip != self.private_ip:
+                ips.append(ip)
+
+        return ips
+
+    def __str__(self):
+        return f"{self.name}\t{self.private_ip}\t{self.instance_id}"
+
+    def __gt__(self, other):
+        my_key = [self.name or "", self.private_ip or "", self.instance_id]
+        other_key = [
+            other.name or "", other.private_ip or "", other.instance_id
+        ]
+
+        return my_key > other_key
+
+
+class Ec2InstanceFormatter:
+    def __init__(self, ip_type=IP_PRIVATE, show_uptime=True):
+        self.ip_type = ip_type
+        self.show_uptime = show_uptime
+
+    def format_uptime(self, instance):
+        now = datetime.datetime.utcnow()
+        launch_time = instance.launch_time.replace(tzinfo=None)
+
+        uptime = (now - launch_time).total_seconds()
+        units = "s"
+
+        if uptime > 60:
+            uptime /= 60
+            units = "m"
+
+        if uptime > 60:
+            uptime /= 60
+            units = "h"
+
+        if uptime > 24:
+            uptime /= 24
+            units = "d"
+
+        pretty_uptime = f"{math.floor(uptime)}{units}"
+        pretty_state = STATE_ICONS[instance.state_code]
+
+        return f"{pretty_state} {pretty_uptime}"
+
+    def _format_line(self, instance, ip):
+        """
+        One line of output format, specifying an IP to display. Where an
+        instance has multiple IPs associated and we want to see all of them,
+        such as with --alt-ip, we will emit multiple records, one for each IP
+        """
+        name = instance.name or "(no name)"
+        instance_id = instance.instance_id
+        uptime = self.format_uptime(instance)
+
+        line = (
+            f"{name : <34} "
+            f"{ip : <16} "
+            f"{instance_id : <21}"
+        )
+
+        if self.show_uptime:
+            line += f"{uptime : <7}"
+
+        return line
+
+    def format(self, instance) -> Optional[str]:
+        if self.ip_type == IP_ALT:
+            lines = [
+                self._format_line(instance, ip)
+                for ip in instance.alternate_ips
+            ]
+            if not lines:
+                return None
+
+            return "\n".join(lines)
+
+        ip = None
+
+        if self.ip_type == IP_PRIVATE:
+            ip = instance.private_ip
+        elif self.ip_type == IP_PUBLIC:
+            ip = instance.public_ip
+
+        ip = ip or ""
+
+        return self._format_line(instance, ip)
+
+class Ec2InstanceFinder:
+    tmp_dir = "/tmp"
+
+    def __init__(self, use_cache=True):
+        self.ec2 = boto3.client("ec2")
+        self.session = boto3.Session()
+        self.use_cache = True
+
+    @property
+    def cache_key(self) -> str:
+        access_key = os.environ.get("AWS_ACCESS_KEY_ID", "defaultaccesskey")
+        profile = self.session.profile_name or "default-profile"
+        today = datetime.datetime.today().strftime("%Y-%m-%d")
+
+        return (
+            f"find-ec2-results-py-{access_key}-{profile}-{today}.json"
+        )
+
+    @property
+    def cache_file(self) -> str:
+        return os.path.join(self.tmp_dir, self.cache_key)
+
+    def write_cache(self, data):
+        with open(self.cache_file, "w") as f:
+            json.dump(data, f, default=serialise_json)
+
+    def read_cache(self):
+        if not os.path.isfile(self.cache_file):
+            return None
+
+        with open(self.cache_file, "r") as f:
+            return json.load(f)
+
+    def get_results(self):
+        if self.use_cache:
+            data = self.read_cache()
+
+            if data is not None:
+                self.data = data
+                return self.data
+
+        response = self.ec2.describe_instances()
+
+        # Pass the data in and out of the cache first as we will lose type
+        # information for datetimes when we serialise it, so this makes sure
+        # we have it in a consistent format
+        self.write_cache(response)
+        self.data = self.read_cache()
+
+        return self.data
+
+    def get_all_instances(self):
+        results = self.get_results()
+        return sorted([
+            Ec2Instance(i)
+            for r in results["Reservations"] for i in r["Instances"]
+        ])
+
+
+def main():
+    parser = argparse.ArgumentParser("find-ec2")
+    parser.add_argument(
+        "-C", "--no-cache", action="store_false", dest="use_cache"
+    )
+    parser.add_argument("pattern", nargs="?")
+
+    format_parser = parser.add_argument_group("format")
+    format_parser.add_argument(
+        "--public-ip", action="store_const", dest="ip_type", const=IP_PUBLIC
+    )
+    format_parser.add_argument(
+        "--alt-ip", action="store_const", dest="ip_type", const=IP_ALT
+    )
+    format_parser.add_argument(
+        "-U", "--no-uptime", action="store_false", dest="show_uptime"
+    )
+
+    args = parser.parse_args()
+
+    finder = Ec2InstanceFinder(use_cache=args.use_cache)
+    instances = finder.get_all_instances()
+    formatter = Ec2InstanceFormatter(
+        ip_type=args.ip_type or IP_PRIVATE,
+        show_uptime=args.show_uptime
+    )
+
+    if args.pattern:
+        instances = [i for i in instances if i.name and args.pattern in i.name]
+
+    for instance in instances:
+        pretty = formatter.format(instance)
+        if pretty:
+            print(pretty)
+
+
+if __name__ == "__main__":
+    main()

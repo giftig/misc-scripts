@@ -19,7 +19,8 @@ CYAN=$(tput setaf 6)
 GREY=$(tput setaf 8)
 RESET=$(tput sgr0)
 
-CACHE_ARG=''
+CACHE_FLAG=''
+IP_FLAG=''
 FILTER_TERM=''
 TASK='_conn'
 OVERRIDE_HOST=''
@@ -28,34 +29,6 @@ OVERRIDE_CMD=''
 SSH_USER=${EC2_CONNECT_DEFAULT_USER:-ec2-user}
 KEY="${EC2_CONNECT_DEFAULT_KEY:-$HOME/.ssh/id_rsa}"
 FIND_FORMAT=default
-
-# This slightly unwieldy jq format specifically selects alternate IP addresses, i.e.
-# addresses listed under NetworkInterfaces and which don't match the instance's
-# private IP address. We'll only show instances which have such interfaces, and
-# we'll list each instance potentially multiple times, once for each such interface
-ALTERNATE_IPS_FORMAT='
-  .Reservations |
-    map(.Instances) |
-    .[] |
-    map(
-      .InstanceId as $instanceId |
-      (
-        (
-          (.Tags // [])[] |
-            select(.Key == "Name") |
-            .Value
-        ) // "(no name)"
-      ) as $instanceName |
-      .PrivateIpAddress as $instanceIp |
-      .NetworkInterfaces |
-        map(
-          select(.PrivateIpAddress != $instanceIp) |
-          [$instanceName, .PrivateIpAddress, $instanceId]
-        ) |
-        .[]
-    ) |
-    .[]
-'
 
 REMOTE_PS1_SCRIPT="$HOME/.ec2-connect/remote-ps1.sh"
 
@@ -112,7 +85,7 @@ _conn() {
 while [[ "$#" != 0 ]]; do
   case "$1" in
     -C|--no-cache)
-      CACHE_ARG='-C'
+      CACHE_FLAG='-C'
       shift
       ;;
     -k|--key)
@@ -131,11 +104,11 @@ while [[ "$#" != 0 ]]; do
       ;;
     -p|--pub|--public)
       shift
-      FIND_FORMAT=pubip
+      IP_FLAG='--public-ip'
       ;;
     -a|--alt)
       shift
-      FIND_FORMAT="$ALTERNATE_IPS_FORMAT"
+      IP_FLAG="--alt-ip"
       ;;
     --ip|--host)
       shift
@@ -184,7 +157,7 @@ if [[ "$OVERRIDE_HOST" != '' ]]; then
   IP="$OVERRIDE_HOST"
 else
   ENTRY=$(
-    ./find-ec2 "$CACHE_ARG" -p '| .[0] + " " + .[1] + " " + .[2]' -f "$FIND_FORMAT" "$FILTER_TERM" 2> /dev/null |
+    ./find-ec2 $CACHE_FLAG $IP_FLAG $FILTER_TERM 2> /dev/null |
       grep -E "$IP_PATTERN" |
       fzf --ansi -i -0 -1 +m --prompt='Select host: ' |
       tr -s ' '
