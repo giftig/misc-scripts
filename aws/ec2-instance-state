@@ -5,9 +5,13 @@
 POLL=0
 INSTANCE_ID=''
 
+FIELD_STATE="\"state\": .Reservations[0].Instances[0].State,"
+SELECTED_FIELDS='state'
+FIELDS="$FIELD_STATE"
+
 print_state() {
   aws ec2 describe-instances --instance-ids "$1" |
-    jq -r '.Reservations[0].Instances[0].State'
+    jq -r "{$FIELDS}"
 }
 
 usage() {
@@ -15,8 +19,10 @@ usage() {
   echo ''
   echo 'Options:'
   echo ''
-  echo '-i, --instance-id   AWS instance ID to check state of'
+  echo 'INSTANCE_ID         AWS instance ID to check state of'
   echo '-p, --poll          Poll every 5s until stopped, instead of executing once'
+  echo '-s                  Print instance state (on by default)'
+  echo '-S                  Do not print instance state'
 }
 
 while [[ "$#" != 0 ]]; do

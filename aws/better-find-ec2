@@ -3,9 +3,20 @@
 import argparse
 import datetime
 import json
+import math
 import os
 
 import boto3
+
+IP_PUBLIC = "public_ip"
+IP_PRIVATE = "private_ip"
+
+STATE_PENDING = 0
+STATE_RUNNING = 16
+STATE_SHUTTING_DOWN = 32
+STATE_TERMINATED = 48
+STATE_STOPPING = 64
+STATE_STOPPED = 80
 
 
 def serialise_json(obj: any) -> str:
@@ -34,11 +45,71 @@ class Ec2Instance:
         self.instance_id = data["InstanceId"]
         self.launch_time = datetime.datetime.fromisoformat(data["LaunchTime"])
         self.state = data["State"]["Name"]
+        self.state_code = data["State"]["Code"]
         self.private_ip = data.get("PrivateIpAddress")
         self.public_ip = data.get("PublicIpAddress")
 
     def __str__(self):
         return f"{self.name}\t{self.private_ip}\t{self.instance_id}"
+
+    def __gt__(self, other):
+        my_key = [self.name or "", self.private_ip or "", self.instance_id]
+        other_key = [
+            other.name or "", other.private_ip or "", other.instance_id
+        ]
+
+        return my_key > other_key
+
+
+class Ec2InstanceFormatter:
+    def __init__(self, ip_type=IP_PRIVATE):
+        self.ip_type = ip_type
+
+    def format_uptime(self, instance):
+        now = datetime.datetime.utcnow()
+        launch_time = instance.launch_time.replace(tzinfo=None)
+
+        uptime = (now - launch_time).total_seconds()
+        units = "s"
+
+        if uptime > 60:
+            uptime /= 60
+            units = "m"
+
+        if uptime > 60:
+            uptime /= 60
+            units = "h"
+
+        if uptime > 24:
+            uptime /= 24
+            units = "d"
+
+        pretty_uptime = f"{math.floor(uptime)}{units}"
+
+        if instance.state_code == STATE_RUNNING:
+            pretty_state = "Up"
+        else:
+            pretty_state = instance.state.replace("-", " ").title()
+
+        return f"{pretty_state} {pretty_uptime}"
+
+    def format(self, instance):
+        name = instance.name or "(no name)"
+        ip = (
+            instance.private_ip
+            if self.ip_type == IP_PRIVATE
+            else instance.public_ip
+        ) or ""
+
+        instance_id = instance.instance_id
+        uptime = self.format_uptime(instance)
+
+        return (
+            f"{name : <39} "
+            f"{ip : <16} "
+            f"{instance_id : <21} "
+            f"{uptime : <19}"
+        )
 
 
 class Ec2InstanceFinder:
@@ -94,27 +165,32 @@ class Ec2InstanceFinder:
 
     def get_all_instances(self):
         results = self.get_results()
-        return [
+        return sorted([
             Ec2Instance(i)
             for r in results["Reservations"] for i in r["Instances"]
-        ]
+        ])
 
 
 def main():
     parser = argparse.ArgumentParser("find-ec2")
     parser.add_argument("-C", action="store_false", dest="use_cache")
+    parser.add_argument("--public-ip", action="store_true")
+    parser.add_argument("--alt-ip", action="store_true")
     parser.add_argument("pattern", nargs="?")
 
     args = parser.parse_args()
 
+    ip_type = IP_PUBLIC if args.public_ip else IP_PRIVATE
+
     finder = Ec2InstanceFinder(use_cache=args.use_cache)
     instances = finder.get_all_instances()
+    formatter = Ec2InstanceFormatter(ip_type=ip_type)
 
     if args.pattern:
         instances = [i for i in instances if i.name and args.pattern in i.name]
 
     for instance in instances:
-        print(instance)
+        print(formatter.format(instance))
 
 
 if __name__ == "__main__":

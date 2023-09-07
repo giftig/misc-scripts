@@ -4,7 +4,7 @@ SEARCH_TERM=''
 
 FORMAT='default'
 OVERRIDE_FORMAT=0
-PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2]'
+PRESENTATION='| .[0] + "\t" + .[1] + "\t" + .[2] + "\t" + .[3] + "\t" + .[4]'
 CACHE_FILE="/tmp/find-ec2-results-${AWS_ACCESS_KEY_ID:-defaultaccesskey}-${AWS_PROFILE:-defaultprofile}-$(date +'%Y-%m-%d').json"
 USE_CACHE=1
 
@@ -85,7 +85,25 @@ case $FORMAT in
 esac
 
 if [[ "$OVERRIDE_FORMAT" == 0 ]]; then
-  FORMAT='.Reservations | map(.Instances) | .[] | map([((.Tags // [])[] | select(.Key == "Name") | .Value) // "(no name)", '"$IP_OPTIONS"', .InstanceId]) | .[]'
+  FORMAT='
+    .Reservations |
+      map(.Instances) |
+      .[] |
+      map(
+        [
+          (
+            (.Tags // [])[] |
+              select(.Key == "Name") |
+              .Value
+          ) // "(no name)",
+          '"$IP_OPTIONS"',
+          .InstanceId,
+          .LaunchTime,
+          .State.Name
+        ]
+      ) |
+      .[]
+  '
 fi
 
 describe_instances |
