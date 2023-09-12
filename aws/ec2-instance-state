@@ -2,7 +2,7 @@
 
 # Quickly find EC2 instance state by ID
 
-POLL=0
+POLL_FREQ=0
 INSTANCE_ID=''
 
 FIELD_STATE="\"state\": .Reservations[0].Instances[0].State,"
@@ -20,7 +20,8 @@ usage() {
   echo 'Options:'
   echo ''
   echo 'INSTANCE_ID         AWS instance ID to check state of'
-  echo '-p, --poll          Poll every 5s until stopped, instead of executing once'
+  echo '-p, --poll FREQ     Poll every FREQ seconds until stopped, instead of'
+  echo '                    executing once'
   echo '-s                  Print instance state (on by default)'
   echo '-S                  Do not print instance state'
 }
@@ -28,7 +29,8 @@ usage() {
 while [[ "$#" != 0 ]]; do
   case "$1" in
     -p|--poll)
-      POLL=1
+      shift
+      POLL_FREQ="$1"
       shift
       ;;
     -*)
@@ -54,10 +56,10 @@ if [[ "$INSTANCE_ID" == '' ]]; then
   exit 3
 fi
 
-if [[ "$POLL" == 1 ]]; then
+if [[ "$POLL_FREQ" != 0 ]]; then
   while true; do
     print_state "$INSTANCE_ID"
-    sleep 5
+    sleep "$POLL_FREQ"
   done
 else
   print_state "$INSTANCE_ID"

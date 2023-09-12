@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Uses find-ec2 to create a list of known hosts, optionally filtered,
+# Uses find_ec2 to create a list of known hosts, optionally filtered,
 # and then use fzf to provide a nice interface for selecting the one we
 # want to connect to and setting your remote PS1 to a nice coloured
 # representation of which host you're on.
@@ -38,7 +38,7 @@ usage() {
   echo ''
   echo 'Options:'
   echo ''
-  echo '-C           Tell the underlying find-ec2 script to skip the cache'
+  echo '-C           Tell the underlying find_ec2 script to skip the cache'
   echo '--key KEY    Use the specified SSH key.'
   echo '--ip IPADDR,'
   echo '--host HOST  Do not look up IPs, just connect to the given IP or'
@@ -157,7 +157,7 @@ if [[ "$OVERRIDE_HOST" != '' ]]; then
   IP="$OVERRIDE_HOST"
 else
   ENTRY=$(
-    ./find-ec2 $CACHE_FLAG $IP_FLAG $FILTER_TERM 2> /dev/null |
+    ./find_ec2.py $CACHE_FLAG $IP_FLAG $FILTER_TERM 2> /dev/null |
       grep -E "$IP_PATTERN" |
       fzf --ansi -i -0 -1 +m --prompt='Select host: ' |
       tr -s ' '

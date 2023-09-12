@@ -150,11 +150,11 @@ export TERM=xterm-256color
 
 # Shortcuts to some very useful scripts
 ec2() {
-  ~/scripts/aws/find-ec2 "$@"
+  ~/scripts/aws/find_ec2.py "$@"
 }
 
 conn() {
-  ~/scripts/aws/ec2-connect "$@"
+  ~/scripts/aws/ec2_connect.py "$@"
 }
 
 jira() {

@@ -33,6 +33,47 @@ STATE_ICONS = {
 }
 
 
+def get_argument_parser(name="find_ec2"):
+    """
+    Get the argument parser. This is extracted out so that derived scripts can
+    easily inherit all the options needed to work with this script
+
+    N.B. this could also be done via parser inheritance (parents=*) but would
+    require add_help=False in the root and splitting our parser into two, so
+    this approach is slightly simpler for the moment.
+    """
+    parser = argparse.ArgumentParser(name)
+    parser.add_argument(
+        "-C", "--no-cache", action="store_false", dest="use_cache",
+        help="Skip the cache"
+    )
+    parser.add_argument(
+        "pattern", nargs="?", help=(
+            "Filter instances by this term before presenting choices. If "
+            "there is exactly one match for the term it will be picked "
+            "automatically."
+        )
+    )
+
+    format_parser = parser.add_argument_group("format")
+    format_parser.add_argument(
+        "--public-ip", action="store_const", dest="ip_type", const=IP_PUBLIC,
+        help="Use public IP instead of private"
+    )
+    format_parser.add_argument(
+        "-a", "--alt-ip", action="store_const", dest="ip_type", const=IP_ALT,
+        help=(
+            "Find alternate IPs of instances only. Lists each non-default IP "
+            "of an instance as a separate entry, and excludes the primary IP"
+        )
+    )
+    format_parser.add_argument(
+        "-U", "--no-uptime", action="store_false", dest="show_uptime",
+        help="Exclude instance uptime from display"
+    )
+    return parser
+
+
 def serialise_json(obj: any) -> str:
     """Serialiser for non-serialisable types"""
     if isinstance(obj, datetime.datetime):
@@ -58,6 +99,18 @@ class Ec2Instance:
         self.state_code = data["State"]["Code"]
         self.private_ip = data.get("PrivateIpAddress")
         self.public_ip = data.get("PublicIpAddress")
+
+    def get_ips_by_type(self, ip_type):
+        if ip_type == IP_PRIVATE:
+            return [self.private_ip]
+
+        if ip_type == IP_PUBLIC:
+            return [self.public_ip]
+
+        if ip_type == IP_ALT:
+            return self.alternate_ips
+
+        return []
 
     @property
     def alternate_ips(self):
@@ -113,13 +166,14 @@ class Ec2InstanceFormatter:
 
         return f"{pretty_state} {pretty_uptime}"
 
-    def _format_line(self, instance, ip):
+    def format_line(self, instance, ip):
         """
         One line of output format, specifying an IP to display. Where an
         instance has multiple IPs associated and we want to see all of them,
         such as with --alt-ip, we will emit multiple records, one for each IP
         """
         name = instance.name or "(no name)"
+        ip = ip or ""
         instance_id = instance.instance_id
         uptime = self.format_uptime(instance)
 
@@ -135,26 +189,17 @@ class Ec2InstanceFormatter:
         return line
 
     def format(self, instance) -> Optional[str]:
-        if self.ip_type == IP_ALT:
-            lines = [
-                self._format_line(instance, ip)
-                for ip in instance.alternate_ips
-            ]
-            if not lines:
-                return None
+        ips = instance.get_ips_by_type(self.ip_type)
 
-            return "\n".join(lines)
+        lines = [
+            self.format_line(instance, ip)
+            for ip in ips
+        ]
+        if not lines:
+            return None
 
-        ip = None
+        return "\n".join(lines)
 
-        if self.ip_type == IP_PRIVATE:
-            ip = instance.private_ip
-        elif self.ip_type == IP_PUBLIC:
-            ip = instance.public_ip
-
-        ip = ip or ""
-
-        return self._format_line(instance, ip)
 
 class Ec2InstanceFinder:
     tmp_dir = "/tmp"
@@ -162,7 +207,7 @@ class Ec2InstanceFinder:
     def __init__(self, use_cache=True):
         self.ec2 = boto3.client("ec2")
         self.session = boto3.Session()
-        self.use_cache = True
+        self.use_cache = use_cache
 
     @property
     def cache_key(self) -> str:
@@ -215,35 +260,36 @@ class Ec2InstanceFinder:
         ])
 
 
+class Ec2InstanceFilter:
+    """
+    Just filter instances according to pattern config
+    """
+    def __init__(self, pattern):
+        self.pattern = pattern
+
+    def apply(self, instances):
+        if not self.pattern:
+            return instances
+
+        return [
+            i for i in instances
+            if i.name and (
+                self.pattern in i.name or self.pattern in i.instance_id
+            )
+        ]
+
+
 def main():
-    parser = argparse.ArgumentParser("find-ec2")
-    parser.add_argument(
-        "-C", "--no-cache", action="store_false", dest="use_cache"
-    )
-    parser.add_argument("pattern", nargs="?")
-
-    format_parser = parser.add_argument_group("format")
-    format_parser.add_argument(
-        "--public-ip", action="store_const", dest="ip_type", const=IP_PUBLIC
-    )
-    format_parser.add_argument(
-        "--alt-ip", action="store_const", dest="ip_type", const=IP_ALT
-    )
-    format_parser.add_argument(
-        "-U", "--no-uptime", action="store_false", dest="show_uptime"
-    )
-
+    parser = get_argument_parser("find-ec2")
     args = parser.parse_args()
 
     finder = Ec2InstanceFinder(use_cache=args.use_cache)
-    instances = finder.get_all_instances()
     formatter = Ec2InstanceFormatter(
         ip_type=args.ip_type or IP_PRIVATE,
         show_uptime=args.show_uptime
     )
-
-    if args.pattern:
-        instances = [i for i in instances if i.name and args.pattern in i.name]
+    filter = Ec2InstanceFilter(args.pattern)
+    instances = filter.apply(finder.get_all_instances())
 
     for instance in instances:
         pretty = formatter.format(instance)
