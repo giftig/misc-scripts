@@ -171,7 +171,7 @@ class Ec2InstanceFinder:
         today = datetime.datetime.today().strftime("%Y-%m-%d")
 
         return (
-            f"find-ec2-results-py-{access_key}-{profile}-{today}.json"
+            f"find-ec2-results-{access_key}-{profile}-{today}.json"
         )
 
     @property
