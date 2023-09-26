@@ -64,7 +64,7 @@ if ! which fzf &> /dev/null; then
 fi
 
 INSTANCES=$(
-  ./find-ec2 $CACHE_FLAG "$FILTER_TERM" 2> /dev/null |
+  ./find_ec2.py $CACHE_FLAG "$FILTER_TERM" 2> /dev/null |
     fzf --ansi -i -0 -1 -m --prompt='Select instances: ' |
     tr -s ' '
 )

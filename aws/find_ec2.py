@@ -149,17 +149,14 @@ class Ec2InstanceFormatter:
         uptime = (now - launch_time).total_seconds()
         units = "s"
 
-        if uptime > 60:
-            uptime /= 60
-            units = "m"
+        thresholds = [("m", 60), ("h", 60), ("d", 60)]
 
-        if uptime > 60:
-            uptime /= 60
-            units = "h"
+        for unit, threshold in thresholds:
+            if not uptime > threshold:
+                break
 
-        if uptime > 24:
-            uptime /= 24
-            units = "d"
+            uptime /= threshold
+            units = unit
 
         pretty_uptime = f"{math.floor(uptime)}{units}"
         pretty_state = STATE_ICONS[instance.state_code]
