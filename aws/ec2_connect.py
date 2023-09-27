@@ -171,6 +171,9 @@ class Ec2ConnectTask:
             instance, host = self.select_instance_ip()
             instance_name = instance.name
 
+        if not host:
+            raise ValueError("Can't connect to host with no IP available")
+
         self.connect.connect(host, instance_name)
 
 
