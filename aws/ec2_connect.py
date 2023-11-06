@@ -215,10 +215,7 @@ def main():
         host=args.host, user=args.user, key=args.key, command=args.cmd,
         scp=args.scp
     )
-    finder = find_ec2.Ec2InstanceFinder(args.use_cache)
-    formatter = find_ec2.Ec2InstanceFormatter()
-    filter = find_ec2.Ec2InstanceFilter(args.pattern)
-
+    finder, formatter, filter = find_ec2.create_components(args)
     task = Ec2ConnectTask(connect, finder, formatter, filter, args.ip_type)
 
     try:

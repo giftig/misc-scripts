@@ -32,6 +32,33 @@ STATE_ICONS = {
     STATE_TERMINATED: "💀"
 }
 
+# Fields (format keys)
+INSTANCE_ID = "instance_id"
+IP = "ip"
+NAME = "name"
+UPTIME = "uptime"
+
+DEFAULT_FIELDS = [NAME, IP, INSTANCE_ID]
+ALL_FORMAT_FIELDS = [INSTANCE_ID, IP, NAME, UPTIME]
+
+# Approx. expected lengths of fields for pretty printing with printf
+PRETTY_LENGTHS = {
+    INSTANCE_ID: 21,
+    IP: 15,
+    NAME: 34,
+    UPTIME: 7
+}
+
+# Mark fields missing like (no name) if absent
+MARK_ABSENT_FIELDS = {NAME}
+
+# Replace with an empty string if absent
+OMIT_ABSENT_FIELDS = {IP}
+
+# Potential output formats enum
+OUTPUT_PRETTY = "pretty"
+OUTPUT_CSV = "csv"
+
 
 def get_argument_parser(name="find_ec2"):
     """
@@ -57,6 +84,19 @@ def get_argument_parser(name="find_ec2"):
 
     format_parser = parser.add_argument_group("format")
     format_parser.add_argument(
+        "--format-key", default=None,
+        help=(
+            "Specify fields to include in the output, as comma-separated "
+            "values. The following fields are currently supported "
+            f"(case-insensitive): {','.join(ALL_FORMAT_FIELDS)}. Default is "
+            f"{','.join(DEFAULT_FIELDS)},{UPTIME}"
+        )
+    )
+    format_parser.add_argument(
+        "--csv", dest="output_format", nargs="?", const=OUTPUT_CSV,
+        help="Output data as CSV instead of pretty-printing"
+    )
+    format_parser.add_argument(
         "--public-ip", action="store_const", dest="ip_type", const=IP_PUBLIC,
         help="Use public IP instead of private"
     )
@@ -69,7 +109,10 @@ def get_argument_parser(name="find_ec2"):
     )
     format_parser.add_argument(
         "-U", "--no-uptime", action="store_false", dest="show_uptime",
-        help="Exclude instance uptime from display"
+        help=(
+            "Exclude instance uptime from display. Equivalent to "
+            f"--format-key {','.join(DEFAULT_FIELDS)}"
+        )
     )
     return parser
 
@@ -125,6 +168,13 @@ class Ec2Instance:
 
         return ips
 
+    @property
+    def uptime(self):
+        now = datetime.datetime.utcnow()
+        launch_time = self.launch_time.replace(tzinfo=None)
+
+        return (now - launch_time).total_seconds()
+
     def __str__(self):
         return f"{self.name}\t{self.private_ip}\t{self.instance_id}"
 
@@ -138,15 +188,37 @@ class Ec2Instance:
 
 
 class Ec2InstanceFormatter:
-    def __init__(self, ip_type=IP_PRIVATE, show_uptime=True):
+    def __init__(
+        self, format_key, ip_type=IP_PRIVATE, output_format=OUTPUT_PRETTY
+    ):
         self.ip_type = ip_type
-        self.show_uptime = show_uptime
+
+        self.format_key = format_key
+        self.output_format = output_format
+
+        for field in self.format_key:
+            if field not in ALL_FORMAT_FIELDS:
+                raise ValueError(
+                    f"'{field}' is not a valid option for format key"
+                )
+
+    def format_field(self, key, instance, value=None):
+        """Prettify different fields in different ways based on key"""
+        value = value or getattr(instance, key, None)
+
+        if key in MARK_ABSENT_FIELDS:
+            return value or f"(no {key})"
+
+        if key in OMIT_ABSENT_FIELDS:
+            return value or ""
+
+        if key == UPTIME:
+            return self.format_uptime(instance)
+
+        return value
 
     def format_uptime(self, instance):
-        now = datetime.datetime.utcnow()
-        launch_time = instance.launch_time.replace(tzinfo=None)
-
-        uptime = (now - launch_time).total_seconds()
+        uptime = instance.uptime
         units = "s"
 
         thresholds = [("m", 60), ("h", 60), ("d", 60)]
@@ -158,6 +230,7 @@ class Ec2InstanceFormatter:
             uptime /= threshold
             units = unit
 
+        # TODO: colourise?
         pretty_uptime = f"{math.floor(uptime)}{units}"
         pretty_state = STATE_ICONS[instance.state_code]
 
@@ -165,25 +238,29 @@ class Ec2InstanceFormatter:
 
     def format_line(self, instance, ip):
         """
-        One line of output format, specifying an IP to display. Where an
+        One line of output format, specifying an IP to display along with the
+        instance. With --alt-ip, Where an
         instance has multiple IPs associated and we want to see all of them,
-        such as with --alt-ip, we will emit multiple records, one for each IP
+        such as with --alt-ip, we will emit multiple records, one for each IP.
+
+        In cases, IP may be expected to be absent for some entries.
         """
-        name = instance.name or "(no name)"
-        ip = ip or ""
-        instance_id = instance.instance_id
-        uptime = self.format_uptime(instance)
+        line = []
+        sep = "," if self.output_format == OUTPUT_CSV else " "
 
-        line = (
-            f"{name : <34} "
-            f"{ip : <16} "
-            f"{instance_id : <21}"
-        )
+        for key in self.format_key:
+            formatted = self.format_field(
+                key, instance, value=ip if key == IP else None
+            )
 
-        if self.show_uptime:
-            line += f"{uptime : <7}"
+            # Pad to a given width if we're creating human-readable output
+            if self.output_format == OUTPUT_PRETTY:
+                len = PRETTY_LENGTHS.get(key, 1)
+                line.append(f"{formatted : <{len}}")
+            else:
+                line.append(formatted)
 
-        return line
+        return sep.join(line)
 
     def format(self, instance) -> Optional[str]:
         ips = instance.get_ips_by_type(self.ip_type)
@@ -276,16 +353,39 @@ class Ec2InstanceFilter:
         ]
 
 
+def create_components(args):
+    """
+    Create the finder, formatter and filter components from the provided args.
+    Again this makes it easier to reuse the logic of constructing these from
+    common argparse components.
+
+    This also validates some of the arguments in doing so.
+    """
+    format_key = (
+        args.format_key.split(",") if args.format_key else DEFAULT_FIELDS
+    )
+    if not args.show_uptime and args.format_key:
+        raise ValueError("Cannot use --no-uptime and --format-key together")
+
+    if not args.format_key and args.show_uptime:
+        format_key.append(UPTIME)
+
+    finder = Ec2InstanceFinder(use_cache=args.use_cache)
+    formatter = Ec2InstanceFormatter(
+        format_key=format_key,
+        output_format=args.output_format or OUTPUT_PRETTY,
+        ip_type=args.ip_type or IP_PRIVATE
+    )
+    filter = Ec2InstanceFilter(args.pattern)
+
+    return finder, formatter, filter
+
+
 def main():
     parser = get_argument_parser("find-ec2")
     args = parser.parse_args()
 
-    finder = Ec2InstanceFinder(use_cache=args.use_cache)
-    formatter = Ec2InstanceFormatter(
-        ip_type=args.ip_type or IP_PRIVATE,
-        show_uptime=args.show_uptime
-    )
-    filter = Ec2InstanceFilter(args.pattern)
+    finder, formatter, filter = create_components(args)
     instances = filter.apply(finder.get_all_instances())
 
     for instance in instances:
