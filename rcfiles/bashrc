@@ -32,6 +32,7 @@ export PS1='${PS1_MARKER}'"\W \[$(tput setaf 1)\]\$(__git_ps1 '(%s) ')\[$(tput s
 PATH="$PATH:/usr/local/go/bin:/usr/local/heroku/bin:$HOME/.pokemon-terminal"
 PATH="$PATH:/opt/blackbox/bin"
 PATH="$PATH:/opt/spark/bin:$HOME/.jenv/bin"
+PATH="$PATH:/opt/mc/bin"
 export PATH="$PATH:/opt/coursier/bin:$HOME/.local/share/coursier/bin"
 
 # Tell fzf to use ag so that it ignores .gitignore stuff
