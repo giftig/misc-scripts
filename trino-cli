@@ -1,0 +1,8 @@
+#!/bin/bash
+
+docker run \
+  -it \
+  --add-host host.docker.internal:host-gateway \
+  -e TRINO_PASSWORD \
+  trinodb/trino:latest \
+  trino "$@"
