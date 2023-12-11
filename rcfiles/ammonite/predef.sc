@@ -11,7 +11,7 @@ import $exec.resources.Testing
 import $exec.resources.Time
 import $exec.resources.TypesafeConfig
 
-import $exec.resources.Slick, Slick._
+//import $exec.resources.Slick, Slick._
 
 import $exec.resources.LocalJars
 import scala.collection.JavaConverters._
