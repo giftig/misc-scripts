@@ -85,7 +85,12 @@ icat() {
 }
 
 ecr() {
-  $(aws ecr get-login --no-include-email --region eu-west-1)
+  if [[ "$AWS_ECR_ACCOUNT" == '' ]]; then
+    echo 'You need to set $AWS_ECR_ACCOUNT in your environment to use this shortcut.' >&2
+    echo 'This should be in a format like <account_id>.dkr.ecr.<region>.amazonaws.com' >&2
+    return 1
+  fi
+  aws ecr get-login-password | docker login --username AWS --password-stdin "$AWS_ECR_ACCOUNT"
 }
 
 dcr() {
