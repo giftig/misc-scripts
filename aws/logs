@@ -9,13 +9,17 @@
 
 CACHE_FILE="/tmp/awslogs-cache-${AWS_ACCOUNT_ID:-default}-$(date +'%Y-%m-%d').json"
 
-get_groups() {
+cache_groups() {
   if [[ ! -f "$CACHE_FILE" ]]; then
     awslogs groups > "$CACHE_FILE"
   fi
+}
 
+get_groups() {
   cat "$CACHE_FILE"
 }
+
+cache_groups
 
 LOG_GROUP=$(get_groups | fzf -i +m)
 echo "$(tput setaf 2)Reading log group $LOG_GROUP$(tput sgr0)"
