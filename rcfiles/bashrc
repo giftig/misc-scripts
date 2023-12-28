@@ -189,4 +189,5 @@ complete -C /usr/bin/terraform terraform
   . ~/.bashrc_venv
   . ~/.work
   . ~/.aliases
+  . ~/.cargo/env
 } &> /dev/null
