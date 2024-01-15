@@ -60,7 +60,7 @@ class DPSRow(object):
 
         if 'Restarting' in status:
             timing = DPSRow._abbreviate_timings(
-                re.sub('Restarting \(.+\) ', '', status)
+                re.sub(r'Restarting \(.+\) ', '', status)
             )
             status = f'♻️ {timing}'
 
@@ -89,7 +89,7 @@ class DPSRow(object):
         img = comps[1]
 
         repo = re.sub(
-            '(\d+)\.dkr\.ecr\.[^\.]+\.amazonaws\.com', r'ecr[\1]', repo
+            r'(\d+)\.dkr\.ecr\.[^\.]+\.amazonaws\.com', r'ecr[\1]', repo
         )
 
         return '{}/{}'.format(repo, img)
