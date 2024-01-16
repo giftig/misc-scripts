@@ -170,8 +170,8 @@ class Ec2Instance:
 
     @property
     def uptime(self):
-        now = datetime.datetime.utcnow()
-        launch_time = self.launch_time.replace(tzinfo=None)
+        now = datetime.datetime.now(datetime.UTC)
+        launch_time = self.launch_time
 
         return (now - launch_time).total_seconds()
 
