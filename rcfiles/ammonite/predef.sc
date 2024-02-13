@@ -6,6 +6,7 @@ import $exec.resources.Elasticsearch, Elasticsearch._
 import $exec.resources.Json
 import $exec.resources.Kamon
 import $exec.resources.Mongo
+import $exec.resources.Redis
 import $exec.resources.Scalike
 import $exec.resources.Testing
 import $exec.resources.Time
