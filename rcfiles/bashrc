@@ -36,7 +36,7 @@ PATH="$PATH:/opt/mc/bin"
 export PATH="$PATH:/opt/coursier/bin:$HOME/.local/share/coursier/bin"
 
 # Tell fzf to use ag so that it ignores .gitignore stuff
-export FZF_DEFAULT_COMMAND='ag -g ""'
+export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 
 # Always use gvim
 alias vim=gvim
