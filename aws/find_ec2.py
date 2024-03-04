@@ -8,6 +8,8 @@ import os
 from typing import Optional
 
 import boto3
+from botocore import session as core_session
+from botocore.credentials import JSONFileCache
 
 # Internal enum for which IPs to present
 IP_PUBLIC = "public_ip"
@@ -279,9 +281,21 @@ class Ec2InstanceFinder:
     tmp_dir = "/tmp"
 
     def __init__(self, use_cache=True):
-        self.ec2 = boto3.client("ec2")
-        self.session = boto3.Session()
+        self.session = self.create_session()
+        self.ec2 = self.session.client("ec2")
         self.use_cache = use_cache
+
+    @staticmethod
+    def create_session():
+        """
+        Create a boto session which reuses the aws cli's credential cache on disk
+        """
+        cache_file = os.path.join(os.path.expanduser("~"), ".aws/cli/cache")
+        sess = core_session.get_session()
+        sess.get_component("credential_provider").get_provider("assume-role").cache = (
+            JSONFileCache(cache_file)
+        )
+        return boto3.Session(botocore_session=sess)
 
     @property
     def cache_key(self) -> str:
