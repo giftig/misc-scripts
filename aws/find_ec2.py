@@ -223,7 +223,7 @@ class Ec2InstanceFormatter:
         uptime = instance.uptime
         units = "s"
 
-        thresholds = [("m", 60), ("h", 60), ("d", 60)]
+        thresholds = [("m", 60), ("h", 60), ("d", 24)]
 
         for unit, threshold in thresholds:
             if not uptime > threshold:
