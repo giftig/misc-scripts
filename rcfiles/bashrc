@@ -27,7 +27,20 @@ export NO_AT_BRIDGE=1
 # Docker stuff
 export DOCKER_URL='unix:///var/run/docker.sock'
 
-export PS1='${PS1_MARKER}'"\W \[$(tput setaf 1)\]\$(__git_ps1 '(%s) ')\[$(tput setaf 3)\]\[$(tput bold)\]\\$ \[$(tput sgr0)\]"
+# Extra PS1 marker if in a nix shell, for clarity
+_nix_marker() {
+  if [[ "$_USE_NIX_MARKER" == 1 ]]; then
+    echo -n '🐚'
+    return
+  fi
+
+  if echo "$PATH" | grep -F '/nix/store' &> /dev/null; then
+    export _USE_NIX_MARKER=1
+    echo -n '🐚'
+  fi
+}
+
+export PS1='$(_nix_marker)${PS1_MARKER}'"\W \[$(tput setaf 1)\]\$(__git_ps1 '(%s) ')\[$(tput setaf 3)\]\[$(tput bold)\]\\$ \[$(tput sgr0)\]"
 
 PATH="$PATH:/usr/local/go/bin:/usr/local/heroku/bin:$HOME/.pokemon-terminal"
 PATH="$PATH:/opt/blackbox/bin"
@@ -48,6 +61,8 @@ alias redis-cli='docker run --net host --rm -it --entrypoint redis-cli redis'
 alias purge_swap="find . -name '*.swp' -delete"
 
 alias tmux='tmux -2'
+
+export NIX_SHELL_PRESERVE_PROMPT=1
 
 # TMUX SHORTCUTS
 
@@ -190,4 +205,5 @@ complete -C /usr/bin/terraform terraform
   . ~/.work
   . ~/.aliases
   . ~/.cargo/env
+  . ~/.nix-profile/etc/profile.d/nix.sh
 } &> /dev/null
