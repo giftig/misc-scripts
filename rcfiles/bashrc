@@ -29,14 +29,16 @@ export DOCKER_URL='unix:///var/run/docker.sock'
 
 # Extra PS1 marker if in a nix shell, for clarity
 _nix_marker() {
+#  local _marker='🐚'
+  local _marker='*'
   if [[ "$_USE_NIX_MARKER" == 1 ]]; then
-    echo -n '🐚'
+    echo -n "$_marker"
     return
   fi
 
   if echo "$PATH" | grep -F '/nix/store' &> /dev/null; then
     export _USE_NIX_MARKER=1
-    echo -n '🐚'
+    echo -n "$_marker"
   fi
 }
 
