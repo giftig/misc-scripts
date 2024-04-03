@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Get ES hits out of a full ES query response
+
+SRC_FILE=${1:-/dev/stdin}
+
+cat "$SRC_FILE" | jq -r '.hits.hits | map(._source)'
