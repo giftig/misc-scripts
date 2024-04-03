@@ -1,0 +1,76 @@
+#!/bin/bash
+
+SCRIPT_PATH="$(dirname "$0")"
+
+ES="${ELASTIC_HTTP_URL:-localhost:9200}"
+QUERY_RESULT_FILE='/dev/stdin'
+INDEX=''
+
+usage() {
+  echo 'Usage: write-docs [-h HOSTSTRING] [-f FILE] INDEX'
+  echo ''
+  echo 'Copy documents from the response of a query and insert them into the given index'
+  echo 'Use in conjunction with a query to easily copy documents between indices'
+  echo ''
+  echo 'Options:'
+  echo ''
+  echo 'INDEX                         Index name, required'
+  echo ''
+  echo '-h, --hoststring HOSTSTRING   Hoststring for ES to connect to, including auth etc.'
+  echo '                              You can also set this with the $ELASTIC_HTTP_URL var'
+  echo '                              Defaults to localhost:9200 otherwise.'
+  echo '-f, --file FILE               File to read ES query response from, defaults to stdin'
+}
+
+while [[ "$#" != 0 ]]; do
+  case "$1" in
+    -f|--file)
+      shift
+      QUERY_RESULT_FILE="$1"
+      shift
+      ;;
+    -h|--hoststring)
+      shift
+      ES="$1"
+      shift
+      ;;
+    *)
+      if [[ "$INDEX" == '' ]]; then
+        INDEX="$1"
+        shift
+      else
+        echo 'Too many arguments!' >&2
+        usage >&2
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+if [[ "$INDEX" == '' ]]; then
+  echo 'Missing index' >&2
+  usage >&2
+  exit 2
+fi
+
+"$SCRIPT_PATH"/extract-docs "$QUERY_RESULT_FILE" |
+  jq -c '.[]' |
+  while read doc; do
+    echo -n 'Response status: '
+    status=$(
+      echo "$doc" |
+        curl \
+          -s \
+          -w '%{http_code}' \
+          -o /dev/null \
+          -X POST \
+          -H 'Content-type: application/json' \
+          -d '@/dev/stdin' \
+          "$ES/$INDEX/_doc/"
+    )
+    echo "$status"
+
+    if ! echo "$status" | grep -E '^2' > /dev/null; then
+      exit 4
+    fi
+  done
