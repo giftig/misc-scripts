@@ -60,4 +60,4 @@ case "$1" in
     ;;
 esac
 
-nohup kitty --session "$SESSION_FILE" -o="background=$COL" & disown
+nohup kitty --session "$SESSION_FILE" -o="background=$COL" > /dev/null & disown
