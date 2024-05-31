@@ -29,8 +29,8 @@ export DOCKER_URL='unix:///var/run/docker.sock'
 
 # Extra PS1 marker if in a nix shell, for clarity
 _nix_marker() {
-#  local _marker='🐚'
-  local _marker='*'
+  # A shell emoji, with markers to allocate only the correct 2-char width
+  local _marker=$'\001\xf0\x9f\002\x90\x9a'
   if [[ "$_USE_NIX_MARKER" == 1 ]]; then
     echo -n "$_marker"
     return
