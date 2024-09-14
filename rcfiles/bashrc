@@ -113,7 +113,7 @@ ecr() {
 
 dcr() {
   local SERVICE="$1"
-  docker-compose stop "$SERVICE" && docker-compose rm -f "$SERVICE" && docker-compose up -d "$SERVICE"
+  docker compose stop "$SERVICE" && docker-compose rm -f "$SERVICE" && docker-compose up -d "$SERVICE"
 }
 
 # Amm options to work with different libraries
