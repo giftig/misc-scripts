@@ -5,6 +5,8 @@ if [ -f /etc/bashrc ]; then
   . /etc/bashrc
 fi
 
+# LANGUAGE-SPECIFIC --------------------------------------------------
+
 # Python
 export WORKON_HOME=~/.virtualenvs
 export PIP_VIRTUALENV_BASE=$WORKON_HOME
@@ -15,17 +17,11 @@ export NPM_PACKAGES="$HOME/.npm-packages"
 export NODE_PATH="$NPM_PACKAGES/lib/node_modules:$NODE_PATH"
 export PATH="$PATH:$NPM_PACKAGES/bin"
 
-# Elephant mode
-export HISTSIZE=100000
-export HISTFILESIZE=
-PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+# --------------------------------------------------------------------
 
-# This suppresses spurious warnings from gtk applications about failure to register
-# with an accessibility bus
-export NO_AT_BRIDGE=1
+# SHELL SETTINGS -----------------------------------------------------
 
-# Docker stuff
-export DOCKER_URL='unix:///var/run/docker.sock'
+export PATH="$PATH:/opt/blackbox/bin:/opt/spark/bin:$HOME/.jenv/bin:/opt/mc/bin:/opt/coursier/bin:$HOME/.local/share/coursier/bin"
 
 # Extra PS1 marker if in a nix shell, for clarity
 _nix_marker() {
@@ -44,11 +40,20 @@ _nix_marker() {
 
 export PS1='$(_nix_marker)${PS1_MARKER}'"\W \[$(tput setaf 1)\]\$(__git_ps1 '(%s) ')\[$(tput setaf 3)\]\[$(tput bold)\]\\$ \[$(tput sgr0)\]"
 
-PATH="$PATH:/usr/local/go/bin:/usr/local/heroku/bin:$HOME/.pokemon-terminal"
-PATH="$PATH:/opt/blackbox/bin"
-PATH="$PATH:/opt/spark/bin:$HOME/.jenv/bin"
-PATH="$PATH:/opt/mc/bin"
-export PATH="$PATH:/opt/coursier/bin:$HOME/.local/share/coursier/bin"
+export TERM=xterm-256color
+
+# Elephant mode
+export HISTSIZE=100000
+export HISTFILESIZE=
+PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
+
+# Ensure symlinked dirs expand with trailing slash in autocomplete
+bind 'set mark-symlinked-directories on'
+
+# --------------------------------------------------------------------
+
+# TOOL SETTINGS ------------------------------------------------------
 
 # Tell fzf to use ag so that it ignores .gitignore stuff
 export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
@@ -56,17 +61,27 @@ export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 # Always use gvim
 alias vim=gvim
 
-# Docked redis-cli for ease
-alias redis-cli='docker run --net host --rm -it --entrypoint redis-cli redis'
-
-# Useful aliases / definitions
-alias purge_swap="find . -name '*.swp' -delete"
-
-alias tmux='tmux -2'
+complete -C /usr/bin/terraform terraform
 
 export NIX_SHELL_PRESERVE_PROMPT=1
 
-# TMUX SHORTCUTS
+# Make sure colour grep is used
+unalias grep &> /dev/null
+alias grep='grep --color=auto'
+
+# This suppresses spurious warnings from gtk applications about failure to register
+# with an accessibility bus
+export NO_AT_BRIDGE=1
+
+export DOCKER_URL='unix:///var/run/docker.sock'
+
+# Initialise jenv
+eval "$(jenv init -)"
+
+# TMUX ----------------------------------------------------------------
+
+# 256col tmux
+alias tmux='tmux -2'
 
 # Wrap a command in a tmux session if not already in one
 _in_tmux() {
@@ -81,40 +96,11 @@ _in_tmux() {
   tmux attach -t $SESSION_NAME
 }
 
-dps() {
-  $HOME/scripts/dps "$@"
-}
+alias vsplit='_in_tmux split -h'
+alias hsplit='_in_tmux split -v'
+# ---------------------------------------------------------------------
 
-dsbt() {
-  /opt/docker-sbt/wrapper.sh "$@"
-}
-
-cdl() {
-  $HOME/scripts/format/cdl "$@"
-}
-
-logs() {
-  "$HOME/scripts/aws/logs" "$@"
-}
-
-# Kitty icat
-icat() {
-  kitty +kitten icat "$@"
-}
-
-ecr() {
-  if [[ "$AWS_ECR_ACCOUNT" == '' ]]; then
-    echo 'You need to set $AWS_ECR_ACCOUNT in your environment to use this shortcut.' >&2
-    echo 'This should be in a format like <account_id>.dkr.ecr.<region>.amazonaws.com' >&2
-    return 1
-  fi
-  aws ecr get-login-password | docker login --username AWS --password-stdin "$AWS_ECR_ACCOUNT"
-}
-
-dcr() {
-  local SERVICE="$1"
-  docker compose stop "$SERVICE" && docker-compose rm -f "$SERVICE" && docker-compose up -d "$SERVICE"
-}
+# COMMANDS AND ALIASES ------------------------------------------------
 
 # Amm options to work with different libraries
 amm() {
@@ -130,56 +116,37 @@ amm-spark() {
   amm -p "$HOME/.ammonite/predef_spark.sc" --class-based "$@"
 }
 
-alias vsplit='_in_tmux split -h'
-alias hsplit='_in_tmux split -v'
+###
 
-alias qf="$HOME/scripts/quickfind"
-alias ubuntu='docker run --rm -it -w /mnt -v $(pwd):/mnt ubuntu:latest /bin/bash'
-alias mp='mplayer -geometry 0%:100%'
-
-# Vim modes
-alias vim-ocean='vim -c "color oceandeep"'
-alias vim-midnight='vim -c "color midnight"'
-alias vim-log='vim -c "color oceandeep" -c "AnsiEsc"'
-alias viml=vim-log
-alias vim-json='vim -c "set filetype=json"'
-
-## OS-SPECIFIC ALIASES
-
-if [[ ! -d /Library ]]; then
-  # Linux-specific aliases
-  unalias ls &> /dev/null
-  unalias which &> /dev/null
-  alias ls='ls --color=auto'
-  alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
-
-  alias open=xdg-open
-fi
-
-unalias grep &> /dev/null
-alias grep='grep --color=auto'
-alias notes='vim -c RecentNotes'
-
-# Alias these to the docker scripts only if it's not installed
-if ! which ffmpeg &> /dev/null; then
-  alias ffmpeg="$HOME/scripts/video/ffmpeg"
-  alias ffprobe="$HOME/scripts/video/ffprobe"
-fi
-
-# Ensure symlinked dirs expand with trailing slash in autocomplete
-bind 'set mark-symlinked-directories on'
-
-export TERM=xterm-256color
-
-# Shortcuts to some very useful scripts
-ec2() {
-  ~/scripts/aws/find_ec2.py "$@"
+# Cardinal: js syntax highlighting
+cdl() {
+  $HOME/scripts/format/cdl "$@"
 }
 
-conn() {
-  ~/scripts/aws/ec2_connect.py "$@"
+# Shortcut to quickly recycle a docker compose container
+dcr() {
+  local SERVICE="$1"
+  docker compose stop "$SERVICE" && docker compose rm -f "$SERVICE" && docker compose up -d "$SERVICE"
 }
 
+# Script to wrap docker ps and give it colour / better readability
+dps() {
+  $HOME/scripts/dps "$@"
+}
+
+# Docked sbt
+dsbt() {
+  /opt/docker-sbt/wrapper.sh "$@"
+}
+
+
+# Kitty shell trick to display image in shell
+icat() {
+  kitty +kitten icat "$@"
+}
+
+# Open current ticket in jira; requires some config and a ticket number
+# (either argument, or current branch name)
 jira() {
   if [[ "$JIRA_SUBDOMAIN" == '' ]]; then
     echo 'Set the $JIRA_SUBDOMAIN in ~/.work' >&2
@@ -195,8 +162,68 @@ jira() {
   open "https://$JIRA_SUBDOMAIN.atlassian.net/browse/$CARD"
 }
 
-eval "$(jenv init -)"
-complete -C /usr/bin/terraform terraform
+# Shortcut for looking at cloudwatch logs, selecting streams interactively with fzf
+logs() {
+  "$HOME/scripts/aws/logs" "$@"
+}
+
+# Fullscreen mplayer
+alias mp='mplayer -geometry 0%:100%'
+
+# Quickly look at recent vim notes
+alias notes='vim -c RecentNotes'
+
+# Quickfind, to search for definitions etc. in code
+alias qf="$HOME/scripts/quickfind"
+
+alias ubuntu='docker run --rm -it -w /mnt -v $(pwd):/mnt ubuntu:latest /bin/bash'
+
+# Vim modes
+alias vim-json='vim -c "set filetype=json"'
+alias vim-log='vim -c "color oceandeep" -c "AnsiEsc"'
+alias vim-midnight='vim -c "color midnight"'
+alias vim-ocean='vim -c "color oceandeep"'
+alias viml=vim-log
+
+###
+
+# AWS tooling
+
+# Connect to an EC2 instance
+conn() {
+  ~/scripts/aws/ec2_connect.py "$@"
+}
+
+# List EC2 instances
+ec2() {
+  ~/scripts/aws/find_ec2.py "$@"
+}
+
+# Log into AWS ECR
+ecr() {
+  if [[ "$AWS_ECR_ACCOUNT" == '' ]]; then
+    echo 'You need to set $AWS_ECR_ACCOUNT in your environment to use this shortcut.' >&2
+    echo 'This should be in a format like <account_id>.dkr.ecr.<region>.amazonaws.com' >&2
+    return 1
+  fi
+  aws ecr get-login-password | docker login --username AWS --password-stdin "$AWS_ECR_ACCOUNT"
+}
+
+# ---------------------------------------------------------------------
+
+# ENVIRONMENT-SPECIFIC ALIASES ----------------------------------------
+
+# Linux-specific aliases
+if [[ ! -d /Library ]]; then
+  unalias ls &> /dev/null
+  unalias which &> /dev/null
+  alias ls='ls --color=auto'
+  alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
+
+  alias open=xdg-open
+fi
+
+# ---------------------------------------------------------------------
 
 # Import other useful files
 {
