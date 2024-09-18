@@ -19,3 +19,7 @@ install_rcfile() {
 find "$DIR" -maxdepth 1 -type f | grep -Fv 'install.sh' | grep -Ev '\.swp$' | while read f; do
   install_rcfile "$f"
 done
+
+echo 'Installing kitty conf...'
+mkdir -p "$HOME/.config/kitty" && ln -s "$DIR/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
+mkdir -p "$HOME/.kitty" && touch "$HOME/.kitty/default.session"
