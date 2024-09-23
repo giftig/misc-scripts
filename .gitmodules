@@ -1,3 +1,0 @@
-[submodule "lib/quickfind"]
-	path = lib/quickfind
-	url = git@github.com:giftig/quickfind.git

@@ -173,9 +173,6 @@ alias mp='mplayer -geometry 0%:100%'
 # Quickly look at recent vim notes
 alias notes='vim -c RecentNotes'
 
-# Quickfind, to search for definitions etc. in code
-alias qf="$HOME/scripts/quickfind"
-
 alias ubuntu='docker run --rm -it -w /mnt -v $(pwd):/mnt ubuntu:latest /bin/bash'
 
 # Vim modes
