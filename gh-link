@@ -1,0 +1,32 @@
+#!/bin/bash
+
+GITHUB_ROOT='https://github.com/'
+
+FILE_PATH="$1"
+LINE="$2"
+REMOTE="${3:-origin}"
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+usage() {
+  echo 'Usage: gh-link FILE_PATH LINE_NUMBER [REMOTE_NAME]'
+}
+
+if [[ "$FILE_PATH" == '' ]]; then
+  usage >&2
+  exit 1
+fi
+
+if [[ "$LINE" == '' ]]; then
+  usage >&2
+  exit 2
+fi
+
+REPO_URL=$(git remote -v | grep -E "^$REMOTE" | head -n 1 | tr '\t' ' ' | tr -s ' ' | cut -d ' ' -f 2)
+if ! echo "$REPO_URL" | grep -F 'git@github.com' &> /dev/null; then
+  echo "Remote URL does not begin with git@github.com; I don't know how to generate a web link" >&2
+  exit 3
+fi
+
+REPO="$(echo "$REPO_URL" | cut -d ':' -f 2 | sed -E 's/\.git$//')"
+
+echo "$GITHUB_ROOT$REPO/blob/$BRANCH/$FILE_PATH#L$LINE"
