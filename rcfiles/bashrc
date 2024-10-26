@@ -21,7 +21,7 @@ export PATH="$PATH:$NPM_PACKAGES/bin"
 
 # SHELL SETTINGS -----------------------------------------------------
 
-export PATH="$PATH:/opt/blackbox/bin:/opt/spark/bin:$HOME/.jenv/bin:/opt/mc/bin:/opt/coursier/bin:$HOME/.local/share/coursier/bin"
+export PATH="$PATH:/opt/blackbox/bin:/opt/spark/bin:$HOME/.jenv/bin:/opt/mc/bin:/opt/coursier/bin:$HOME/.local/share/coursier/bin:$HOME/.local/bin"
 
 # Extra PS1 marker if in a nix shell, for clarity
 # Currently disabled, just add a call at the start of PS1 to re-enable
