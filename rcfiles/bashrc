@@ -5,6 +5,8 @@ if [ -f /etc/bashrc ]; then
   . /etc/bashrc
 fi
 
+. /usr/share/git-core/contrib/completion/git-prompt.sh &> /dev/null
+
 # LANGUAGE-SPECIFIC --------------------------------------------------
 
 # Python
