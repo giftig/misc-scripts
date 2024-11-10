@@ -2,7 +2,7 @@ services:
   backend:
     image: giftig/go:latest
     volumes:
-      - ${GO_REDIRECT_DATA_DIR}:/usr/src/db
+      - ${GO_REDIRECT_DATA_DIR}:/usr/src/db:z
 
   frontend:
     image: giftig/go-static:latest

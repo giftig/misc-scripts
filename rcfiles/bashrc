@@ -5,11 +5,11 @@ if [ -f /etc/bashrc ]; then
   . /etc/bashrc
 fi
 
-. /usr/share/git-core/contrib/completion/git-prompt.sh &> /dev/null
 
 # LANGUAGE-SPECIFIC --------------------------------------------------
 
 # Python
+. $HOME/.local/bin/virtualenvwrapper_lazy.sh &> /dev/null
 export WORKON_HOME=~/.virtualenvs
 export PIP_VIRTUALENV_BASE=$WORKON_HOME
 export PIP_RESPECT_VIRTUALENV=true
@@ -22,6 +22,8 @@ export PATH="$PATH:$NPM_PACKAGES/bin"
 # --------------------------------------------------------------------
 
 # SHELL SETTINGS -----------------------------------------------------
+
+. /usr/share/git-core/contrib/completion/git-prompt.sh &> /dev/null
 
 export PATH="$PATH:/opt/blackbox/bin:/opt/spark/bin:$HOME/.jenv/bin:/opt/mc/bin:/opt/coursier/bin:$HOME/.local/share/coursier/bin:$HOME/.local/bin"
 
