@@ -3,6 +3,7 @@ services:
     image: giftig/go:latest
     volumes:
       - ${GO_REDIRECT_DATA_DIR}:/usr/src/db:z
+    restart: unless-stopped
 
   frontend:
     image: giftig/go-static:latest
@@ -10,3 +11,4 @@ services:
       - 80:80
     depends_on:
       - backend
+    restart: unless-stopped
