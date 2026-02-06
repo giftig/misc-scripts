@@ -16,10 +16,13 @@ install_rcfile() {
   fi
 }
 
-find "$DIR" -maxdepth 1 -type f | grep -Fv 'install.sh' | grep -Ev '\.swp$' | while read f; do
+find "$DIR" -maxdepth 1 | grep -Fv 'install.sh' | grep -Fv 'kitty' | grep -Ev '\.swp$' | while read f; do
   install_rcfile "$f"
 done
 
 echo 'Installing kitty conf...'
 mkdir -p "$HOME/.config/kitty" && ln -s "$DIR/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
 mkdir -p "$HOME/.kitty" && touch "$HOME/.kitty/default.session"
+
+echo 'Setting default gitignore_global...'
+git config --global core.excludesfile $HOME/.gitignore_global

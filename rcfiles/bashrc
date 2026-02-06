@@ -81,7 +81,9 @@ export NO_AT_BRIDGE=1
 export DOCKER_URL='unix:///var/run/docker.sock'
 
 # Initialise jenv
-eval "$(jenv init -)"
+if which jenv &>/dev/null; then
+  eval "$(jenv init -)"
+fi
 
 # TMUX ----------------------------------------------------------------
 
@@ -215,14 +217,21 @@ ecr() {
 
 # ENVIRONMENT-SPECIFIC ALIASES ----------------------------------------
 
-# Linux-specific aliases
 if [[ ! -d /Library ]]; then
+  # Linux
   unalias ls &> /dev/null
   unalias which &> /dev/null
   alias ls='ls --color=auto'
   alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
 
   alias open=xdg-open
+else
+  # Mac
+  alias gvim=/Applications/MacVim.app/Contents/bin/mvim
+  alias python=python3
+  alias pip=pip3
+  export PATH="$PATH:/Library/Frameworks/Python.framework/Versions/3.14/bin/"
+  . ~/.git-prompt.sh &> /dev/null
 fi
 
 # ---------------------------------------------------------------------

@@ -7,3 +7,5 @@
 "\e[1;5D" backward-word
 # Ctrl-right
 "\e[1;5C" forward-word
+
+set horizontal-scroll-mode off

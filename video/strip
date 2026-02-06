@@ -16,7 +16,7 @@ strip_file() {
 
   docker run \
     --rm \
-    -v "$(realpath $(dirname "$1")):/usr/src" \
+    -v "$(realpath $(dirname "$1")):/usr/src:z" \
     -w /usr/src \
     giftig/ffmpeg \
       -i "$f" \
