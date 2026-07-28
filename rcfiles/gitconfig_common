@@ -1,3 +1,5 @@
+[blame]
+  ignoreRevsFile = .git-blame-ignore-revs
 [color]
 	diff = auto
 	status = auto
