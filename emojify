@@ -3,7 +3,7 @@
 # Use an imagemagick container to resize images to 128x128px
 
 f="$1"
-IMAGE_NAME='acleancoder/imagemagick-full:latest'
+IMAGE_NAME='dpokidov/imagemagick:latest'
 DIMENSIONS=128x128
 
 if [[ "$f" == '--help' || "$f" == '' ]]; then
@@ -16,7 +16,7 @@ fname=$(basename "$f")
 
 docker run \
   --rm \
-  -v "$(dirname "$f"):/usr/src" \
+  -v "$(dirname "$f"):/usr/src:z" \
   -w /usr/src \
   --entrypoint convert \
   $IMAGE_NAME \
